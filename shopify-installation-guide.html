@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopify Analytics Tracking - Installation Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            color: #e74c3c;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .step {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .demo-section {
+            border: 2px dashed #bdc3c7;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .client-id-generator {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            width: 300px;
+        }
+        .tracking-events {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .event-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛍️ Shopify Analytics Tracking Installation Guide</h1>
+
+    <div class="container">
+        <h2>📋 Overview</h2>
+        <p>This guide will help you install the enhanced e-commerce analytics tracking script in your Shopify store. The script automatically tracks:</p>
+        
+        <div class="tracking-events">
+            <div class="event-card">
+                <h4>🛒 Shopping Behavior</h4>
+                <ul>
+                    <li>Product views</li>
+                    <li>Add to cart</li>
+                    <li>Remove from cart</li>
+                    <li>Cart updates</li>
+                    <li>Checkout process</li>
+                </ul>
+            </div>
+            <div class="event-card">
+                <h4>🔍 Search & Discovery</h4>
+                <ul>
+                    <li>Search queries</li>
+                    <li>Collection views</li>
+                    <li>Product recommendations</li>
+                    <li>Recently viewed</li>
+                </ul>
+            </div>
+            <div class="event-card">
+                <h4>👥 Customer Engagement</h4>
+                <ul>
+                    <li>Social sharing</li>
+                    <li>Product reviews</li>
+                    <li>Newsletter signups</li>
+                    <li>Wishlist actions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🆔 Step 1: Generate Unique Client ID</h2>
+        <div class="client-id-generator">
+            <h3>Client ID Generator</h3>
+            <p>Generate a unique identifier for each client/store:</p>
+            
+            <label for="storeName">Store Name:</label><br>
+            <input type="text" id="storeName" placeholder="e.g., My Awesome Store"><br><br>
+            
+            <label for="storeDomain">Store Domain:</label><br>
+            <input type="text" id="storeDomain" placeholder="e.g., mystore.myshopify.com"><br><br>
+            
+            <button onclick="generateClientId()">Generate Client ID</button><br><br>
+            
+            <div id="clientIdResult" class="highlight" style="display: none;">
+                <strong>Generated Client ID:</strong> <span id="generatedId"></span><br>
+                <strong>API Key:</strong> <span id="generatedApiKey"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📦 Step 2: Choose Your Tracking Method</h2>
+        
+        <div class="step">
+            <h3>🔄 Method 1: Comprehensive Tracking Script (Recommended)</h3>
+            <p><strong>Best for:</strong> Complete control, custom events, and comprehensive tracking</p>
+            <p>This method provides the most comprehensive tracking with custom event detection, DOM monitoring, and extensive data extraction.</p>
+        </div>
+
+        <div class="step">
+            <h3>🎯 Method 2: ShopifyAnalytics Interceptor (Lightweight)</h3>
+            <p><strong>Best for:</strong> Lightweight implementation, native Shopify events, minimal interference</p>
+            <p>This method intercepts Shopify's native analytics events directly, providing reliable tracking with minimal overhead.</p>
+        </div>
+
+        <div class="step">
+            <h3>📊 Method 3: Hybrid Approach (Best of Both)</h3>
+            <p><strong>Best for:</strong> Maximum coverage, redundancy, comprehensive analytics</p>
+            <p>Use both methods together for maximum tracking coverage and redundancy.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 Method 1: Comprehensive Tracking Script Installation</h2>
+        
+        <div class="step">
+            <h3>Via Shopify Admin (Recommended)</h3>
+            <ol>
+                <li>Go to your Shopify Admin → Online Store → Themes</li>
+                <li>Click "Actions" → "Edit code" on your active theme</li>
+                <li>In the left sidebar, find "Layout" → "theme.liquid"</li>
+                <li>Find the <code>&lt;/head&gt;</code> tag</li>
+                <li>Add the tracking script just before the closing <code>&lt;/head&gt;</code> tag</li>
+            </ol>
+        </div>
+
+        <div class="code-block">
+&lt;!-- Comprehensive Tracking Script --&gt;
+&lt;script 
+    data-store-id="YOUR_CLIENT_ID_HERE"
+    data-api-key="YOUR_API_KEY_HERE"
+    data-endpoint="https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb"
+    data-debug="true"
+    data-auto-track="true"&gt;
+&lt;/script&gt;
+&lt;script src="https://your-domain.com/trackingscript.js"&gt;&lt;/script&gt;
+        </div>
+
+        <div class="step">
+            <h3>Via Shopify App</h3>
+            <ol>
+                <li>Create a Shopify app in your Partner account</li>
+                <li>Use the ScriptTag API to inject the tracking script</li>
+                <li>This method allows for easier updates and management</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Via Google Tag Manager</h3>
+            <ol>
+                <li>Install Google Tag Manager in your Shopify store</li>
+                <li>Create a custom HTML tag</li>
+                <li>Paste the tracking script with your configuration</li>
+                <li>Trigger on all pages</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎯 Method 2: ShopifyAnalytics Interceptor Installation</h2>
+        
+        <div class="step">
+            <h3>Via Shopify Admin</h3>
+            <ol>
+                <li>Go to your Shopify Admin → Online Store → Themes</li>
+                <li>Click "Actions" → "Edit code" on your active theme</li>
+                <li>In the left sidebar, find "Layout" → "theme.liquid"</li>
+                <li>Find the <code>&lt;/head&gt;</code> tag</li>
+                <li>Add the interceptor script just before the closing <code>&lt;/head&gt;</code> tag</li>
+            </ol>
+        </div>
+
+        <div class="code-block">
+&lt;!-- ShopifyAnalytics Interceptor --&gt;
+&lt;script 
+    data-shopify-interceptor
+    data-store-id="YOUR_CLIENT_ID_HERE"
+    data-api-key="YOUR_API_KEY_HERE"
+    data-endpoint="https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb"
+    data-debug="true"&gt;
+&lt;/script&gt;
+&lt;script src="https://your-domain.com/shopify-analytics-interceptor.js"&gt;&lt;/script&gt;
+        </div>
+
+        <div class="step">
+            <h3>Custom Event Configuration</h3>
+            <p>You can customize which events to track:</p>
+        </div>
+
+        <div class="code-block">
+&lt;!-- Custom Events Configuration --&gt;
+&lt;script 
+    data-shopify-interceptor
+    data-store-id="YOUR_CLIENT_ID_HERE"
+    data-api-key="YOUR_API_KEY_HERE"
+    data-events='{"Viewed Product": true, "Added Product": true, "Completed Order": true}'&gt;
+&lt;/script&gt;
+&lt;script src="https://your-domain.com/shopify-analytics-interceptor.js"&gt;&lt;/script&gt;
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Method 3: Hybrid Installation (Both Methods)</h2>
+        
+        <div class="step">
+            <h3>Install Both Scripts</h3>
+            <p>For maximum tracking coverage, install both scripts:</p>
+        </div>
+
+        <div class="code-block">
+&lt;!-- Hybrid Installation: Both Methods --&gt;
+
+&lt;!-- Method 1: Comprehensive Tracking --&gt;
+&lt;script 
+    data-store-id="YOUR_CLIENT_ID_HERE"
+    data-api-key="YOUR_API_KEY_HERE"
+    data-endpoint="https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb"
+    data-debug="true"
+    data-auto-track="true"&gt;
+&lt;/script&gt;
+&lt;script src="https://your-domain.com/trackingscript.js"&gt;&lt;/script&gt;
+
+&lt;!-- Method 2: ShopifyAnalytics Interceptor --&gt;
+&lt;script 
+    data-shopify-interceptor
+    data-store-id="YOUR_CLIENT_ID_HERE"
+    data-api-key="YOUR_API_KEY_HERE"
+    data-endpoint="https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb"
+    data-debug="true"&gt;
+&lt;/script&gt;
+&lt;script src="https://your-domain.com/shopify-analytics-interceptor.js"&gt;&lt;/script&gt;
+        </div>
+
+        <div class="highlight">
+            <strong>Hybrid Benefits:</strong>
+            <ul>
+                <li>Maximum event coverage</li>
+                <li>Redundancy for reliability</li>
+                <li>Native Shopify events + custom detection</li>
+                <li>Fallback if one method fails</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>⚙️ Step 3: Configuration Options</h2>
+        
+        <div class="step">
+            <h3>Method Comparison</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="border: 1px solid #dee2e6; padding: 12px; text-align: left;">Feature</th>
+                        <th style="border: 1px solid #dee2e6; padding: 12px; text-align: left;">Comprehensive Script</th>
+                        <th style="border: 1px solid #dee2e6; padding: 12px; text-align: left;">Analytics Interceptor</th>
+                        <th style="border: 1px solid #dee2e6; padding: 12px; text-align: left;">Hybrid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>File Size</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">~15KB</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">~8KB</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">~23KB</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>Event Coverage</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Comprehensive</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Native Shopify</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Maximum</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>Custom Events</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">✅ Full Support</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">❌ Limited</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">✅ Full Support</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>DOM Monitoring</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">✅ Active</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">❌ Passive</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">✅ Active</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>Reliability</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">High</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Very High</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Maximum</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;"><strong>Performance Impact</strong></td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Low</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Minimal</td>
+                        <td style="border: 1px solid #dee2e6; padding: 12px;">Low</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="step">
+            <h3>Comprehensive Script Configuration</h3>
+            <div class="code-block">
+&lt;script 
+    data-store-id="store_abc123"           &lt;!-- Required: Unique store identifier --&gt;
+    data-api-key="api_key_xyz789"          &lt;!-- Required: API key for authentication --&gt;
+    data-endpoint="https://your-api.com"   &lt;!-- Optional: Custom endpoint URL --&gt;
+    data-debug="true"                      &lt;!-- Optional: Enable debug logging --&gt;
+    data-auto-track="true"                 &lt;!-- Optional: Enable automatic tracking --&gt;
+    data-session-timeout="1800000"         &lt;!-- Optional: Session timeout in ms (30min) --&gt;
+&gt;
+&lt;/script&gt;
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Analytics Interceptor Configuration</h3>
+            <div class="code-block">
+&lt;script 
+    data-shopify-interceptor
+    data-store-id="store_abc123"           &lt;!-- Required: Unique store identifier --&gt;
+    data-api-key="api_key_xyz789"          &lt;!-- Required: API key for authentication --&gt;
+    data-endpoint="https://your-api.com"   &lt;!-- Optional: Custom endpoint URL --&gt;
+    data-debug="true"                      &lt;!-- Optional: Enable debug logging --&gt;
+    data-events='{"Viewed Product": true, "Added Product": true}'  &lt;!-- Optional: Custom events --&gt;
+&gt;
+&lt;/script&gt;
+            </div>
+        </div>
+
+        <div class="highlight">
+            <strong>Configuration Parameters:</strong>
+            <ul>
+                <li><code>data-store-id</code>: Unique identifier for your store (required)</li>
+                <li><code>data-api-key</code>: API key for authentication (required)</li>
+                <li><code>data-endpoint</code>: Custom analytics endpoint (optional)</li>
+                <li><code>data-debug</code>: Enable console logging (optional, default: false)</li>
+                <li><code>data-auto-track</code>: Enable automatic tracking (comprehensive script only)</li>
+                <li><code>data-session-timeout</code>: Session timeout in milliseconds (comprehensive script only)</li>
+                <li><code>data-events</code>: Custom event configuration (interceptor only)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 Step 4: Testing & Verification</h2>
+        
+        <div class="demo-section">
+            <h3>Test Your Installation</h3>
+            <p>Use this demo section to test if your tracking is working:</p>
+            
+            <div style="margin-bottom: 20px;">
+                <h4>Comprehensive Script Tests:</h4>
+                <button onclick="testProductView()">Test Product View</button>
+                <button onclick="testAddToCart()">Test Add to Cart</button>
+                <button onclick="testSearch()">Test Search</button>
+                <button onclick="testCustomEvent()">Test Custom Event</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4>Analytics Interceptor Tests:</h4>
+                <button onclick="testInterceptorEvent()">Test Interceptor Event</button>
+                <button onclick="testShopifyAnalytics()">Test ShopifyAnalytics</button>
+                <button onclick="checkInterceptorStatus()">Check Interceptor Status</button>
+            </div>
+            
+            <div id="testResults" class="highlight" style="display: none;">
+                <h4>Test Results:</h4>
+                <div id="testOutput"></div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important:</strong>
+            <ul>
+                <li>Test in a development environment first</li>
+                <li>Check browser console for any errors</li>
+                <li>Verify events are being sent to your endpoint</li>
+                <li>Monitor your webhook endpoint for incoming data</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Step 5: Manual Event Tracking</h2>
+        <p>You can also manually trigger events using the global <code>ea()</code> function:</p>
+        
+        <div class="code-block">
+// Manual event tracking examples
+ea('trackEvent', 'custom_action', { 
+    action: 'button_click', 
+    location: 'hero_section' 
+});
+
+ea('trackProductView', {
+    id: 'product_123',
+    name: 'Awesome Product',
+    price: 29.99,
+    category: 'Electronics'
+});
+
+ea('trackAddToCart', {
+    id: 'product_123',
+    name: 'Awesome Product',
+    price: 29.99,
+    quantity: 2
+});
+
+ea('trackSearch', 'wireless headphones', 15);
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 Step 6: Advanced Customization</h2>
+        
+        <div class="step">
+            <h3>Custom Event Listeners</h3>
+            <p>Add custom tracking for specific elements:</p>
+        </div>
+
+        <div class="code-block">
+// Custom tracking for specific buttons
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.custom-track-button')) {
+        ea('trackEvent', 'custom_button_click', {
+            button_id: e.target.id,
+            button_text: e.target.textContent
+        });
+    }
+});
+
+// Custom tracking for form submissions
+document.addEventListener('submit', function(e) {
+    if (e.target.matches('.contact-form')) {
+        ea('trackEvent', 'contact_form_submitted', {
+            form_id: e.target.id
+        });
+    }
+});
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎯 When to Use Each Method</h2>
+        
+        <div class="step">
+            <h3>Use Comprehensive Script When:</h3>
+            <ul>
+                <li>You need maximum event coverage and custom tracking</li>
+                <li>You want to track custom business events</li>
+                <li>You need detailed product and user behavior data</li>
+                <li>You want to track interactions that Shopify doesn't track</li>
+                <li>You need granular control over what gets tracked</li>
+                <li>You're building a comprehensive analytics platform</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Use Analytics Interceptor When:</h3>
+            <ul>
+                <li>You want minimal performance impact</li>
+                <li>You only need Shopify's native events</li>
+                <li>You want maximum reliability</li>
+                <li>You're concerned about script conflicts</li>
+                <li>You want lightweight implementation</li>
+                <li>You're building a simple analytics solution</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Use Hybrid Approach When:</h3>
+            <ul>
+                <li>You want maximum tracking coverage</li>
+                <li>You need redundancy for critical events</li>
+                <li>You're building an enterprise analytics solution</li>
+                <li>You want to ensure no events are missed</li>
+                <li>You're tracking high-value transactions</li>
+                <li>You need comprehensive data for business decisions</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🚀 Step 7: Go Live</h2>
+        
+        <div class="success">
+            <strong>✅ Ready to Launch:</strong>
+            <ol>
+                <li>✅ Generate unique client ID</li>
+                <li>✅ Choose tracking method</li>
+                <li>✅ Install tracking script(s)</li>
+                <li>✅ Configure parameters</li>
+                <li>✅ Test functionality</li>
+                <li>✅ Verify data is being sent</li>
+                <li>✅ Deploy to production</li>
+                <li>✅ Monitor for errors</li>
+                <li>✅ Set up analytics dashboard</li>
+            </ol>
+        </div>
+
+        <div class="highlight">
+            <strong>📈 What You'll Track:</strong>
+            <ul>
+                <li>Product views and interactions</li>
+                <li>Shopping cart behavior</li>
+                <li>Checkout funnel analysis</li>
+                <li>Search and discovery patterns</li>
+                <li>Customer engagement metrics</li>
+                <li>Social sharing and reviews</li>
+                <li>Custom business events</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Client ID Generator
+        function generateClientId() {
+            const storeName = document.getElementById('storeName').value;
+            const storeDomain = document.getElementById('storeDomain').value;
+            
+            if (!storeName || !storeDomain) {
+                alert('Please fill in both store name and domain');
+                return;
+            }
+            
+            // Generate unique client ID
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 8);
+            const clientId = `store_${storeName.toLowerCase().replace(/\s+/g, '_')}_${timestamp}_${random}`;
+            
+            // Generate API key
+            const apiKey = `api_${storeDomain.replace(/[^a-zA-Z0-9]/g, '')}_${timestamp}_${random}`;
+            
+            document.getElementById('generatedId').textContent = clientId;
+            document.getElementById('generatedApiKey').textContent = apiKey;
+            document.getElementById('clientIdResult').style.display = 'block';
+        }
+
+        // Test functions
+        function testProductView() {
+            if (window.ea) {
+                window.ea('trackProductView', {
+                    id: 'test_product_123',
+                    name: 'Test Product',
+                    price: 19.99,
+                    category: 'Test Category'
+                });
+                showTestResult('Product view event sent!');
+            } else {
+                showTestResult('Error: Tracking script not loaded');
+            }
+        }
+
+        function testAddToCart() {
+            if (window.ea) {
+                window.ea('trackAddToCart', {
+                    id: 'test_product_123',
+                    name: 'Test Product',
+                    price: 19.99,
+                    quantity: 1
+                });
+                showTestResult('Add to cart event sent!');
+            } else {
+                showTestResult('Error: Tracking script not loaded');
+            }
+        }
+
+        function testSearch() {
+            if (window.ea) {
+                window.ea('trackSearch', 'test search query', 5);
+                showTestResult('Search event sent!');
+            } else {
+                showTestResult('Error: Tracking script not loaded');
+            }
+        }
+
+        function testCustomEvent() {
+            if (window.ea) {
+                window.ea('trackEvent', 'test_custom_event', {
+                    test_property: 'test_value',
+                    timestamp: Date.now()
+                });
+                showTestResult('Custom event sent!');
+            } else {
+                showTestResult('Error: Tracking script not loaded');
+            }
+        }
+
+        // Analytics Interceptor Tests
+        function testInterceptorEvent() {
+            if (window.sai) {
+                window.sai('sendEvent', 'test_interceptor_event', {
+                    test_property: 'test_value',
+                    timestamp: Date.now()
+                });
+                showTestResult('Interceptor event sent!');
+            } else {
+                showTestResult('Error: Analytics Interceptor not loaded');
+            }
+        }
+
+        function testShopifyAnalytics() {
+            if (window.ShopifyAnalytics && window.ShopifyAnalytics.lib) {
+                // Simulate a Shopify analytics event
+                window.ShopifyAnalytics.lib.track('Viewed Product', {
+                    product_id: 'test_product_123',
+                    product_name: 'Test Product',
+                    price: 19.99
+                });
+                showTestResult('ShopifyAnalytics event triggered!');
+            } else {
+                showTestResult('Error: ShopifyAnalytics not available');
+            }
+        }
+
+        function checkInterceptorStatus() {
+            let status = 'Unknown';
+            
+            if (window.ShopifyAnalyticsInterceptor) {
+                status = '✅ Interceptor loaded and active';
+            } else if (window.sai) {
+                status = '✅ Interceptor interface available';
+            } else {
+                status = '❌ Interceptor not loaded';
+            }
+            
+            showTestResult('Interceptor Status: ' + status);
+            
+            // Check if ShopifyAnalytics is available
+            if (window.ShopifyAnalytics && window.ShopifyAnalytics.lib) {
+                showTestResult('✅ ShopifyAnalytics available');
+            } else {
+                showTestResult('❌ ShopifyAnalytics not available');
+            }
+        }
+
+        function showTestResult(message) {
+            document.getElementById('testOutput').innerHTML += '<div>' + message + '</div>';
+            document.getElementById('testResults').style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
+
+
+<!-- ShopifyAnalytics Interceptor --> <script data-shopify-interceptor data-store-id="store_trendia.co_1754483200746_r8oiub" data-api-key="api_trendiaco_1754483200746_r8oiub" data-endpoint="https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb" data-debug="true"> </script> <script src="https://dddemo.net/wordpress/2025/js/shopify-analytics-interceptor.js"></script>
