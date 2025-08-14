@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -358,7 +359,7 @@ ea('trackEvent', 'newsletter_signup', {
                     <div className="border rounded-lg p-4">
                       <h5 className="font-medium text-gray-900 mb-2">WooCommerce</h5>
                       <p className="text-sm text-gray-600">
-                        Add the script to your theme's header.php file or use a plugin like "Insert Headers and Footers"
+                        Add the script to your theme&apos;s header.php file or use a plugin like &quot;Insert Headers and Footers&quot;
                       </p>
                     </div>
                     <div className="border rounded-lg p-4">

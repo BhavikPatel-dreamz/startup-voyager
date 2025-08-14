@@ -1,12 +1,25 @@
-"use server"
 import User from '../models/User';
 import { connectToDatabase } from './mongoose';
 import jwt from 'jsonwebtoken';
 import { jwtVerify } from 'jose';   // lightweight, Edge-friendly
+import bcrypt from 'bcryptjs';
 
 
-const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET || 'your-super-secret-jwt-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Helper utilities for API routes (compat with pages/api/*)
+export function hashPassword(password) {
+  return bcrypt.hashSync(password, 12);
+}
+
+export function verifyPassword(plainPassword, hashedPassword) {
+  return bcrypt.compareSync(plainPassword, hashedPassword);
+}
+
+export function generateToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
 
 // Helper function to convert Mongoose document to plain object
 function convertUserToPlainObject(user) {

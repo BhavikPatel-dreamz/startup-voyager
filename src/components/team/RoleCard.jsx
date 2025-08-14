@@ -1,3 +1,50 @@
+
+import { BarChart3, Plus, X, ChevronDown, Mail, Users, Shield, Eye, RefreshCw, Search } from 'lucide-react';
+export default function RoleCards({title, description, permissions, icon: Icon, color}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <RoleCard
+        title="Admin Role"
+        description="Full access to all features"
+        icon={Shield}
+        color="bg-blue-500"
+        permissions={[
+            'Create and manage campaigns',
+            'Generate tracking scripts',
+            'Access all analytics',
+            'Invite team members',
+            'Manage settings'
+        ]}
+    />
+    <RoleCard
+        title="Editor Role"
+        description="Create and edit content"
+        icon={BarChart3}
+        color="bg-purple-500"
+        permissions={[
+            'Create and edit campaigns',
+            'Access analytics dashboard',
+            'Generate tracking scripts',
+            'Limited user management'
+        ]}
+    />
+    <RoleCard
+        title="Viewer Role"
+        description="Read-only access to data"
+        icon={Eye}
+        color="bg-green-500"
+        permissions={[
+            'View campaign performance',
+            'Access analytics dashboard',
+            'No editing permissions'
+        ]}
+    />
+</div>
+  )
+}
+
+
+
 // Role Card Component
 const RoleCard = ({ title, description, permissions, icon: Icon, color }) => (
   <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -21,4 +68,4 @@ const RoleCard = ({ title, description, permissions, icon: Icon, color }) => (
   </div>
 );
 
-export default RoleCard;
+export { RoleCard };

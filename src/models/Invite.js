@@ -63,7 +63,8 @@ const InviteSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expireAfterSeconds: 0 } // MongoDB will auto-delete expired documents
+      // TTL index: expire exactly at the datetime stored in expiresAt
+      expires: 0
     },
     acceptedAt: {
       type: Date,
@@ -84,4 +85,4 @@ InviteSchema.pre('save', function(next) {
   next();
 });
 
-export default mongoose.models?.Invite || mongoose.model("Invite", InviteSchema);
+export default mongoose.models?.Invite || mongoose.model("Invite", InviteSchema); 

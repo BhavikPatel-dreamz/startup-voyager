@@ -14,10 +14,10 @@ export async function connectToDatabase() {
     throw new Error('This function should only be called on the server side');
   }
 
-  const uri = process.env.NEXT_PUBLIC_MONGODB_URI; // Remove NEXT_PUBLIC_ prefix
+  const uri = process.env.MONGODB_URI; // Use server-side env var
   
   if (!uri) {
-    throw new Error("Please add your Mongo URI to .env.local");
+    throw new Error("Please add your Mongo URI to .env.local as MONGODB_URI");
   }
 
   if (cached.conn) {

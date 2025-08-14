@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { BarChart3, Menu, X, Bell, User, LogOut } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { verifyTokenEdge } from "../lib/auth";
+import { useSession, signOut } from "next-auth/react";
 
 const AppLayout = ({
   children,
@@ -20,59 +20,23 @@ const AppLayout = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [notifications, setNotification] = useState(0);
 
   const router = useRouter();
   const pathname = usePathname(); // Auto-detect active route
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const userData = localStorage.getItem("user");
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
-        if (!token || !userData) {
-          router.push("/login");
-          return;
-        }
-
-        const result = await verifyTokenEdge(token);
-        if (!result.success) {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
-          router.push("/login");
-          return;
-        }
-
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error("Auth check error:", error);
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  const user = session?.user;
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    router.push("/login");
+    signOut({ callbackUrl: "/login" });
   };
-
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-lg">Loading...</div>
-  //     </div>
-  //   );
-  // }
-
-  // if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -181,7 +145,7 @@ const AppLayout = ({
                     </div>
                     {user && (
                       <span className="hidden md:block text-gray-700">
-                        {user.firstName} {user.lastName}
+                        {user.name}
                       </span>
                     )}
                   </button>
@@ -191,7 +155,7 @@ const AppLayout = ({
                       {user && (
                         <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
                           <div className="font-medium">
-                            {user.firstName} {user.lastName}
+                            {user.name}
                           </div>
                           <div className="text-gray-500">{user.email}</div>
                         </div>

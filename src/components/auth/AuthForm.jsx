@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const AuthForm = ({ mode = "login" }) => {
   const router = useRouter();
@@ -20,7 +21,7 @@ const AuthForm = ({ mode = "login" }) => {
       ...prev,
       [name]: value,
     }));
-    setError(""); // Clear error when user types
+    setError("");
   };
 
   const validateForm = () => {
@@ -41,13 +42,6 @@ const AuthForm = ({ mode = "login" }) => {
     return null;
   };
 
-  // Helper function to set cookie
-  const setCookie = (name, value, days = 7) => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -61,44 +55,45 @@ const AuthForm = ({ mode = "login" }) => {
     }
 
     try {
-      // Import auth functions dynamically
-const { registerUser, loginUser } = await import("../../lib/auth");
-     
-
-      let result;
       if (mode === "register") {
-        console.log("formData", formData);
-        result = await registerUser(formData);
-      } else {
-        result = await loginUser({
+        const res = await fetch("/api/auth/register-nextauth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            password: formData.password,
+            businessName: formData.businessName,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Registration failed");
+        }
+        const signInRes = await signIn("credentials", {
+          redirect: false,
           email: formData.email,
           password: formData.password,
         });
-      }
-
-      if (result.success) {
-        console.log("result--", result);
-        
-        // Set token in cookie (accessible by middleware)
-        setCookie("authToken", result.token, 7);
-        
-        // Also store in localStorage for client-side access if needed
-        localStorage.setItem("authToken", result.token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-
-        console.log("Redirect to dashboard");
-
-        // Add a small delay and force refresh to ensure middleware gets the cookie
-        setTimeout(() => {
-          router.push("/dashboard");
-          router.refresh(); // Force refresh to re-run middleware
-        }, 100);
+        if (signInRes?.error) {
+          throw new Error(signInRes.error);
+        }
       } else {
-        setError(result.message);
+        const res = await signIn("credentials", {
+          redirect: false,
+          email: formData.email,
+          password: formData.password,
+        });
+        if (res?.error) {
+          throw new Error(res.error);
+        }
       }
+
+      router.push("/dashboard");
     } catch (err) {
       console.error("Auth error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(err.message || "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
