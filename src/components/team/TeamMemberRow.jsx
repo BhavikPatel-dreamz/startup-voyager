@@ -67,13 +67,13 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
             <ChevronDown className="ml-1 w-4 h-4" />
           </button>
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+            <div className="absolute left-0 mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-9999">
               <button
                 onClick={() => {
                   onRoleChange(member.id, 'admin');
                   setIsDropdownOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 block"
               >
                 Admin
               </button>
@@ -82,7 +82,7 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
                   onRoleChange(member.id, 'editor');
                   setIsDropdownOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 block"
               >
                 Editor
               </button>
@@ -91,7 +91,7 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
                   onRoleChange(member.id, 'viewer');
                   setIsDropdownOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 block"
               >
                 Viewer
               </button>

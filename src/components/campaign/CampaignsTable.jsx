@@ -4,7 +4,7 @@ import { Eye, Edit2, Pause, Play, Trash2 } from "lucide-react";
 export default function CampaignsTable({ campaigns, onAction }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">All Campaigns</h2>
         <span className="text-sm text-gray-500">{campaigns.length} campaigns</span>
       </div>

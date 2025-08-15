@@ -6,8 +6,13 @@ import { useRouter } from 'next/navigation';
 import { updateSiteScript, grantSiteAccess, revokeSiteAccess, fetchUsers as fetchUsersAction } from '../../../lib/actions/scriptActions';
 
 export default function EditScriptClient({ site, siteAccess }) {
+
+
     const { data: session } = useSession();
     const router = useRouter();
+
+    console.log(session)
+
     
     const [script, setScript] = useState(site.trackingScript || '');
     const [scriptSettings, setScriptSettings] = useState(site.scriptSettings || {
@@ -39,11 +44,11 @@ export default function EditScriptClient({ site, siteAccess }) {
     const canEdit = userAccess && ['write', 'admin'].includes(userAccess.permission);
     const isAdmin = userAccess?.permission === 'admin';
 
-    useEffect(() => {
-        if (!session) {
-            router.push('/login');
-        }
-    }, [session, router]);
+    // useEffect(() => {
+    //     if (!session) {
+    //         router.push('/login');
+    //     }
+    // }, [session, router]);
 
     useEffect(() => {
         if (showAccessModal && users.length === 0) {
@@ -65,7 +70,7 @@ export default function EditScriptClient({ site, siteAccess }) {
         }
     };
 
-    const handleSaveScript = async () => {
+    const handleSaveScript = async () => {   
         if (!canEdit) {
             setMessage('You do not have permission to edit this script');
             return;
@@ -157,7 +162,7 @@ export default function EditScriptClient({ site, siteAccess }) {
         }
     };
 
-    if (!session) return null;
+    // if (!session) return null;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">

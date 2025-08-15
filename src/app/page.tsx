@@ -22,7 +22,7 @@ export default function Page() {
           <Button 
             size="lg" 
             className="bg-primary hover:bg-blue-600 text-white px-8 py-3"
-            onClick={() => window.location.href = "/api/login"}
+            onClick={() => window.location.href = "/login"}
           >
             Sign In
           </Button>

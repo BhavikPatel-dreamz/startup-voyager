@@ -60,7 +60,7 @@ const Pagination = ({
       <div className="text-sm text-gray-700">
         Showing <span className="font-medium">{startUser}</span> to{' '}
         <span className="font-medium">{endUser}</span> of{' '}
-        <span className="font-medium">{totalUsers}</span> results
+        <span className="font-medium">{totalUsers}</span> items
       </div>
 
       {/* Pagination controls */}
