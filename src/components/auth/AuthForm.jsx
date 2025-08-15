@@ -14,7 +14,7 @@ const AuthForm = ({ mode = "login" }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const [success, setSuccess] = useState("");
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -71,14 +71,9 @@ const AuthForm = ({ mode = "login" }) => {
         if (!res.ok) {
           throw new Error(data?.error || "Registration failed");
         }
-        const signInRes = await signIn("credentials", {
-          redirect: false,
-          email: formData.email,
-          password: formData.password,
-        });
-        if (signInRes?.error) {
-          throw new Error(signInRes.error);
-        }
+        setSuccess("Account created successfully");
+        router.push("/login");
+      
       } else {
         const res = await signIn("credentials", {
           redirect: false,
@@ -86,11 +81,13 @@ const AuthForm = ({ mode = "login" }) => {
           password: formData.password,
         });
         if (res?.error) {
-          throw new Error(res.error);
+          
+          throw new Error('Validation Failed');
         }
+        router.push("/dashboard");
       }
 
-      router.push("/dashboard");
+      
     } catch (err) {
       console.error("Auth error:", err);
       setError(err.message || "An unexpected error occurred. Please try again.");
@@ -139,6 +136,11 @@ const AuthForm = ({ mode = "login" }) => {
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
+          {success && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-700">{success}</div>
             </div>
           )}
 
