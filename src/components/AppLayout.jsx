@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 
 const AppLayout = ({
   children,
-  appName = "Opt-In Ninja",
+  appName = "CartVoyager",
   pageTitle = "Dashboard",
   secondPageTitle = "",
   menuItems = [
@@ -63,17 +63,16 @@ const AppLayout = ({
         className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-300 z-50
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       >
-        <div className="p-4">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 p-6 border-b border-slate-200">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-white" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart text-white text-sm" data-replit-metadata="client/src/components/sidebar.tsx:69:12" data-component-name="ShoppingCart"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
             </div>
-            <h1 className="font-bold text-gray-900">{appName}</h1>
+            <h1 className="text-xl font-bold text-slate-900">{appName}</h1>
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-2">
+          <nav className="space-y-2 p-4">
             {menuItems.map((item) => {
               const isActive = pathname.startsWith(item.id); // highlight active section
               return (
@@ -83,7 +82,7 @@ const AppLayout = ({
                     router.push(item.id);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-md font-medium transition-colors text-left
                     ${
                       isActive
                         ? "bg-blue-600 text-white shadow-sm"
@@ -101,22 +100,21 @@ const AppLayout = ({
               );
             })}
           </nav>
-        </div>
       </aside>
 
       {/* Main Content */}
       <div className="lg:ml-64">
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-          <div className="px-4 sm:px-6 lg:px-8">
+          <div className="px-4 sm:px-6 lg:px-6 lg:py-4">
             <div className="flex justify-between h-16">
               {/* Page title */}
               <div className="flex items-center">
                 <div className="lg:hidden w-16" />
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">{pageTitle}</h1>
+                  <h1 className="text-2xl font-bold text-slate-900">{pageTitle}</h1>
                   {secondPageTitle && (
-                    <p className="text-gray-600 text-xs">{secondPageTitle}</p>
+                    <p className="text-slate-600 mt-1">{secondPageTitle}</p>
                   )}
                 </div>
               </div>
@@ -179,7 +177,7 @@ const AppLayout = ({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
 
       {isUserMenuOpen && (

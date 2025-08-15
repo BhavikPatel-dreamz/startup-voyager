@@ -72,9 +72,20 @@
     --foreground: #ededed;
   }
 }
-
+* {
+  border-color: var(--border);
+}
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", sans-serif,Arial, Helvetica, sans-serif;
+}
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+.text-card-foreground {
+  color: var(--card-foreground);
+}
+.bg-card {
+  background-color: var(--card);
 }

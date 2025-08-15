@@ -1,21 +1,21 @@
 const CampaignRow = ({ campaign, impressions, ctaClicks, completions, revenue, conversionRate }) => (
-  <tr className="hover:bg-gray-50 transition-colors">
-    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+  <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       {campaign}
     </td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       {impressions}
     </td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       {ctaClicks}
     </td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       {completions}
     </td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       ${revenue.toFixed(2)}
     </td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
       {conversionRate.toFixed(2)}%
     </td>
   </tr>

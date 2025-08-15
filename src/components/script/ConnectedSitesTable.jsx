@@ -47,9 +47,9 @@ export default function ConnectedSitesTable({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Connected Sites</h2>
-        <div className="text-sm text-gray-500">
+      <div className="p-6 flex justify-between items-center">
+        <h2 className="text-2xl font-semibold leading-none tracking-tight">Connected Sites</h2>
+        <div className="text-sm text-muted-foreground">
           {pagination ? `${pagination.totalSites} total sites` : '0 sites'}
         </div>
       </div>
@@ -72,43 +72,44 @@ export default function ConnectedSitesTable({
         </div>
       ) : (
         <>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Script Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connection Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        <div className="px-6 pt-0 overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="[&_tr]:border-b">
+              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Domain</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Platform</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Owner</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Client ID</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Script Status</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Connection Status</th>
+                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="[&_tr:last-child]:border-0">
               {sites.map((site, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{site.domain}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={idx} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{site.domain}</td>
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {site.platform}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{site.owner}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{site.owner}</td>
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{site.clientId}</span>
                     
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(site.scriptStatus, 'script')}`}>
                       {site.scriptStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(site.connectionStatus, 'connection')}`}>
                       {site.connectionStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => onGenerateScript(site)}
@@ -155,6 +156,7 @@ export default function ConnectedSitesTable({
               ))}
             </tbody>
           </table>
+        </div>
           
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (

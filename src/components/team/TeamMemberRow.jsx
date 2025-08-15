@@ -35,8 +35,8 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
   const roleDisplay = getRoleDisplay(member.role);
 
   return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-6 py-4 whitespace-nowrap">
+    <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+      <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
             <span className="text-sm font-medium text-blue-600">
@@ -49,15 +49,15 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleDisplay.className}`}>
           {roleDisplay.name}
         </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
         {member.joined}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
+      <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
