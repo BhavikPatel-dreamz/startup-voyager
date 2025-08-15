@@ -3,40 +3,40 @@ import { Eye, Edit2, Pause, Play, Trash2 } from "lucide-react";
 
 export default function CampaignsTable({ campaigns, onAction }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4 text-black overflow-x-auto">
-      <div className="flex justify-between flex-wrap gap-2 mb-4">
-        <h2 className="text-lg font-semibold">All Campaigns</h2>
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">All Campaigns</h2>
         <span className="text-sm text-gray-500">{campaigns.length} campaigns</span>
       </div>
 
       {/* Table for larger screens */}
       <div className="hidden md:block">
-        <table className="w-full text-sm border-collapse">
-          <thead className="bg-gray-100">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="p-2 text-left">Campaign</th>
-              <th className="p-2 text-left">Client</th>
-              <th className="p-2 text-left">Created By</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Threshold</th>
-              <th className="p-2 text-left">Created</th>
-              <th className="p-2 text-left">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Threshold</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {campaigns.map((c, i) => (
-              <tr key={i} className="border-t">
-                <td className="p-2">{c.name}</td>
-                <td className="p-2 text-blue-600 break-all">{c.client}</td>
-                <td className="p-2">{c.createdBy}</td>
-                <td className="p-2">
+              <tr key={i} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.client}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.createdBy}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <span className="px-2 py-1 rounded-full bg-green-50 text-green-600 text-xs">
                     {c.status}
                   </span>
                 </td>
-                <td className="p-2">{c.threshold}</td>
-                <td className="p-2">{c.created}</td>
-                <td className="p-2 flex gap-2 flex-wrap">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.threshold}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.created}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex gap-2 flex-wrap">
                   <Eye size={16} className="cursor-pointer" onClick={() => onAction("view", c)} />
                   <Edit2 size={16} className="cursor-pointer" onClick={() => onAction("edit", c)} />
                   {c.status === "Active" ? (

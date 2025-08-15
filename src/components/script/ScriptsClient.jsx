@@ -137,6 +137,7 @@ export default function ScriptsClient({ initialSites, initialError }) {
                     </div>
                 )}
 
+                <QuickSetupGuide />
                 <div className="flex justify-end items-center mb-4">
                     <button
                         onClick={() => setIsModalOpen(true)}
@@ -145,8 +146,6 @@ export default function ScriptsClient({ initialSites, initialError }) {
                         + Connect Site
                     </button>
                 </div>
-
-                <QuickSetupGuide />
                 <ConnectedSitesTable
                     sites={sites}
                     onGenerateScript={handleGenerateScript}

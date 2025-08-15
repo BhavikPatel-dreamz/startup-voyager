@@ -22,44 +22,46 @@ export default function ConnectedSitesTable({ sites, onGenerateScript, onEditSit
   };
 
   return (
-    <div className="bg-white text-black rounded-lg shadow p-4 overflow-x-auto">
-      <h2 className="text-lg font-semibold mb-4">Connected Sites</h2>
-      <table className="w-full text-sm border-collapse min-w-[800px]">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-3 font-medium">Domain</th>
-            <th className="p-3 font-medium">Platform</th>
-            <th className="p-3 font-medium">Owner</th>
-            <th className="p-3 font-medium">Client ID</th>
-            <th className="p-3 font-medium">Script Status</th>
-            <th className="p-3 font-medium">Connection Status</th>
-            <th className="p-3 font-medium">Actions</th>
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Connected Sites</h2>
+      </div>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client ID</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Script Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connection Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white divide-y divide-gray-200">
           {sites.map((site, idx) => (
-            <tr key={idx} className="border-t hover:bg-gray-50">
-              <td className="p-3 text-blue-600 font-medium">{site.domain}</td>
-              <td className="p-3">
+            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{site.domain}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {site.platform}
                 </span>
               </td>
-              <td className="p-3">{site.owner}</td>
-              <td className="p-3 font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{site.owner}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {site.clientId}
               </td>
-              <td className="p-3">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(site.scriptStatus, 'script')}`}>
                   {site.scriptStatus}
                 </span>
               </td>
-              <td className="p-3">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(site.connectionStatus, 'connection')}`}>
                   {site.connectionStatus}
                 </span>
               </td>
-              <td className="p-3">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => onGenerateScript(site)}
