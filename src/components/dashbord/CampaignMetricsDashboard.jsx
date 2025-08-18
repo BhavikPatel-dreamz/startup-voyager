@@ -15,35 +15,16 @@ const CampaignMetricsDashboard = ({
     ]
   },
 
-  lastUpdated = "14:45:15",
-  autoRefreshInterval = "10s"
+ 
 }) => {
   
-  const handleRefresh = () => {
-    // Refresh logic here
-    console.log("Refreshing data...");
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="ml-4 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-        
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <button 
-              onClick={handleRefresh}
-              className="flex items-center gap-2 hover:text-gray-700 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-            <span>Last updated: {lastUpdated}</span>
-            <span>Auto-refresh: {autoRefreshInterval}</span>
-          </div>
-        </div>
-
+    
+            {/* Header */}
+      
         {/* Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <MetricCard
@@ -125,7 +106,7 @@ const CampaignMetricsDashboard = ({
             </table>
           </div>
         </div>
-      </div>
+      
     </div>
   );
 };

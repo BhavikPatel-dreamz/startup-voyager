@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import AppLayout from '../../components/AppLayout';
+import AppLayout from '../../../components/AppLayout';
 import { signOut } from "next-auth/react"
 
 // TODO: Replace with real user email from session/auth
@@ -65,8 +65,7 @@ export default function Settings() {
 
     return (
         <div>
-            <AppLayout pageTitle="Settings">
-                <>
+           
                     <div className="max-w-4xl mx-auto space-y-6">
                         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                             <div className="flex flex-col space-y-1.5 p-6">
@@ -239,8 +238,8 @@ export default function Settings() {
                     </div>
                 </div>
                 </div>
-</>
-            </AppLayout>
+           
+         
         </div>
     )
 }

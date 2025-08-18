@@ -1,8 +1,10 @@
 "use client";
-import CampaignMetricsDashboard from "../../components/dashbord/CampaignMetricsDashboard";
-import AppLayout from "../../components/AppLayout";
+import CampaignMetricsDashboard from "../../../components/dashbord/CampaignMetricsDashboard";
+import { useEffect } from "react";
+import { useAppLayout } from "../../../components/AppLayout";
 
 export default function DashboardPage() {
+  const { setTitles } = useAppLayout();
 
   const sampleData = {
     totalImpressions: 1250,
@@ -16,12 +18,15 @@ export default function DashboardPage() {
     ]
   };
 
+  useEffect(() => {
+    setTitles({
+      pageTitle: "Campaign Metrics",
+      secondPageTitle:
+        "Track popup impressions, CTA clicks, and cart completions across all campaigns.",
+    });
+  }, [setTitles]);
+
   return (
-    <AppLayout
-      pageTitle="Campaign Metrics"
-      secondPageTitle="Track popup impressions, CTA clicks, and cart completions across all campaigns."
-    >
       <CampaignMetricsDashboard data={sampleData} />
-    </AppLayout>
   );
 }

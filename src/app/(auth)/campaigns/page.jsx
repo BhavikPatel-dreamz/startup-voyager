@@ -1,11 +1,15 @@
 "use client"
-import React, { useState } from "react";
-import CampaignsTable from "../../components/campaign/CampaignsTable";
-import AppLayout from "../../components/AppLayout";
-import CreateCampaignForm from "../../components/campaign/CreateCampaignForm";
-import Modal from "../../components/Modal";
+import React, { useState, useEffect } from "react";
+import CampaignsTable from "../../../components/campaign/CampaignsTable";
+import CreateCampaignForm from "../../../components/campaign/CreateCampaignForm";
+import Modal from "../../../components/Modal";
+import { useAppLayout } from "../../../components/AppLayout";
 
 export default function CampaignsPage() {
+    const { setTitles } = useAppLayout();
+    useEffect(() => {
+        setTitles({ pageTitle: "Campaigns", secondPageTitle: "Create, monitor, and optimize your opt-in campaigns — all in one place."});
+    }, [setTitles]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [campaigns, setCampaigns] = useState([
         {
@@ -42,11 +46,8 @@ export default function CampaignsPage() {
     };
 
     return (
-        <AppLayout
-            pageTitle="Campaigns"
-           secondPageTitle ="Create, monitor, and optimize your opt-in campaigns — all in one place."
-        >
-            <div className="p-6 bg-gray-50 min-h-screen">
+      
+            <div className="bg-gray-50 min-h-screen">
                 {/* Header */}
                 <div className="flex justify-end items-center mb-6">
                     <button
@@ -75,6 +76,6 @@ export default function CampaignsPage() {
                     />
                 </Modal>
             </div>
-        </AppLayout>
+        
     );
 }
