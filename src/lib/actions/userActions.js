@@ -3,6 +3,37 @@
 import { connectToDatabase } from '../mongoose';
 import User from '../../models/User';
 
+// Delete user by ID
+
+export async function deleteUser(userId) {
+  try {
+    await connectToDatabase();
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found',
+      };
+    }
+    return {
+      success: true,
+      message: 'User deleted successfully',
+      user: {
+        id: user._id.toString(),
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+      },
+    };
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return {
+      success: false,
+      message: 'Failed to delete user',
+    };
+  }
+}
+
+
 // Get all users with optional role filter, search, and pagination
 export async function getUsers(options = {}) {
   try {

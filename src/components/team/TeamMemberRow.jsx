@@ -1,9 +1,17 @@
 "use client"
 import { useState } from "react";
-import { BarChart3, Plus, X, ChevronDown, Mail, Users, Shield, Eye } from 'lucide-react';
+import { BarChart3, Plus, X, ChevronDown, Mail, Users, Shield, Eye, Trash2 } from 'lucide-react';
 
 // Team Member Row Component
-const TeamMemberRow = ({ member, onRoleChange }) => {
+const TeamMemberRow = ({ member, onRoleChange, onDelete }) => {
+  const [deleting, setDeleting] = useState(false);
+  const handleDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${member.name}?`)) {
+      setDeleting(true);
+      await onDelete(member.id);
+      setDeleting(false);
+    }
+  };
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Helper function to get role display name and styling
@@ -58,7 +66,7 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
         {member.joined}
       </td>
       <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
-        <div className="relative">
+          <div className="relative flex items-center gap-2">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -97,6 +105,14 @@ const TeamMemberRow = ({ member, onRoleChange }) => {
               </button>
             </div>
           )}
+            <button
+              onClick={handleDelete}
+              className="ml-2 p-2 rounded hover:bg-red-100 text-red-600 disabled:opacity-50"
+              title="Delete user"
+              disabled={deleting}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
         </div>
       </td>
     </tr>

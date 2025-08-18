@@ -4,7 +4,21 @@ import AppLayout from "../../components/AppLayout";
 import InviteModal from "../../components/team/InviteModal";
 import TeamTable from "../../components/team/TeamTable";
 import {  Plus, X,  RefreshCw, Search } from 'lucide-react';
-import { getUsers, updateUserRole } from "../../lib/actions/userActions";
+import { getUsers, updateUserRole, deleteUser } from "../../lib/actions/userActions";
+    const handleDeleteUser = async (userId) => {
+        try {
+            const result = await deleteUser(userId);
+            if (result.success) {
+                setTeamMembers(prev => prev.filter(member => member.id !== userId));
+                return true
+            } else {
+                alert(result.message || 'Failed to delete user');
+                return Promise.reject();
+            }
+        } catch (err) {
+            alert('Error deleting user');
+        }
+    };
 import RoleCards from "../../components/team/RoleCard";
 
 // Main Team Management Component
@@ -41,7 +55,7 @@ const TeamManagement = () => {
                 role: roleFilter || null,
                 search: debouncedSearch,
                 page: currentPage,
-                limit: 2
+                limit: 20
             });
             
             if (result.success) {
@@ -239,6 +253,7 @@ const TeamManagement = () => {
                     loading={loading}
                     pagination={pagination}
                     handleRoleChange={handleRoleChange}
+                    handleDelete={handleDeleteUser}
                     handlePageChange={handlePageChange}
                     clearFilters={clearFilters}
                     hasActiveFilters={hasActiveFilters}

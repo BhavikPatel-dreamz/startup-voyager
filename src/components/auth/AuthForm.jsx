@@ -80,9 +80,10 @@ const AuthForm = ({ mode = "login" }) => {
           email: formData.email,
           password: formData.password,
         });
+
         if (res?.error) {
           
-          throw new Error('Validation Failed');
+          throw new Error(res?.error || "Login failed");
         }
         router.push("/dashboard");
       }

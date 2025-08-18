@@ -3,7 +3,7 @@ import TeamMemberRow from './TeamMemberRow';
 import Pagination from './Pagination';
 
 
-export default function TeamTable({teamMembers, loading, pagination, handleRoleChange, handlePageChange, clearFilters, hasActiveFilters}) {
+export default function TeamTable({teamMembers, loading, pagination, handleRoleChange, handleDelete, handlePageChange, clearFilters, hasActiveFilters}) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
     <div className="p-6 flex justify-between items-center">
@@ -61,6 +61,7 @@ export default function TeamTable({teamMembers, loading, pagination, handleRoleC
                                 key={member.id}
                                 member={member}
                                 onRoleChange={handleRoleChange}
+                                onDelete={handleDelete}
                             />
                         ))}
                     </tbody>

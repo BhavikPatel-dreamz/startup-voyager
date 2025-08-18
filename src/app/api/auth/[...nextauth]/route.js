@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { connectToDatabase } from "../../../../lib/mongoose";
 import User from "../../../../models/User";
 import bcrypt from "bcryptjs";
+import { connectToDatabase } from "../../../../lib/mongoose";
 
 export const authOptions = {
 	providers: [
@@ -16,9 +16,14 @@ export const authOptions = {
 				if (!credentials?.email || !credentials?.password) return null;
 				await connectToDatabase();
 				const user = await User.findOne({ email: credentials.email.toLowerCase() }).select("+password");
-				if (!user) return null;
+				if (!user) return Promise.reject(new Error('User not found'));
 				const isValid = await bcrypt.compare(credentials.password, user.password);
-				if (!isValid) return null;
+				if (!isValid) return Promise.reject(new Error('Invalid email or password'));
+				
+				if (user.isActive === false) {
+					return Promise.reject(new Error('User is not active'));
+				}
+
 				await user.updateLastLogin();
 				return {
 					id: user._id.toString(),
