@@ -1,15 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function CreateCampaignForm({ onSubmit, onCancel }) {
+export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) {
   const [form, setForm] = useState({
-    site: "",
-    name: "",
-    threshold: "30 seconds",
-    itemsDisplay: "Show 2 items + more",
-    headline: "Wait! Don't leave your cart behind",
-    description: "You have items in your cart. Complete your purchase to secure these products!",
-    cta: "Complete Purchase",
+    connectedSite: initialData?.connectedSite || "",
+    name: initialData?.name || "",
+    inactivityThreshold: initialData?.inactivityThreshold ?? 30,
+    cartItemsDisplay: initialData?.cartItemsDisplay || "show_2_plus",
+    headline: initialData?.headline || "Wait! Don't leave your cart behind",
+    description: initialData?.description || "You have items in your cart. Complete your purchase to secure these products!",
+    cta: initialData?.cta || "complete_purchase",
+    buttonColor: initialData?.buttonColor || "#2563eb",
+    cartUrl: initialData?.cartUrl || "",
   });
+
+  const [sites, setSites] = useState([]);
+
+  useEffect(() => {
+    const loadSites = async () => {
+      try {
+        const res = await fetch('/api/connected-sites');
+        if (res.ok) {
+          const data = await res.json();
+          setSites(data?.data || []);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadSites();
+  }, []);
 
   const handleChange = (key, value) => {
     setForm({ ...form, [key]: value });
@@ -28,13 +47,16 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
         <div>
           <label className="block text-sm font-medium">Connected Site</label>
           <select
-            value={form.site}
-            onChange={(e) => handleChange("site", e.target.value)}
+            value={form.connectedSite}
+            onChange={(e) => handleChange("connectedSite", e.target.value)}
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
           >
             <option value="">Select a site...</option>
-            <option value="thunder-vapes">thunder-vapes-dev.myshopify.com</option>
-            <option value="svotest">svogaretest.myshopify.com</option>
+            {sites.map((s) => (
+              <option key={s._id || s.clientId || s.domain} value={s._id || s.clientId}>
+                {s.domain || s.clientId}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -55,25 +77,30 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
           <div>
             <label className="block text-sm font-medium">Inactivity Threshold</label>
             <select
-              value={form.threshold}
-              onChange={(e) => handleChange("threshold", e.target.value)}
+              value={form.inactivityThreshold}
+              onChange={(e) => handleChange("inactivityThreshold", Number(e.target.value))}
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
             >
-              <option>30 seconds</option>
-              <option>5 seconds</option>
-              <option>1 minute</option>
+              <option value={5}>5 seconds</option>
+              <option value={15}>15 seconds</option>
+              <option value={30}>30 seconds</option>
+              <option value={45}>45 seconds</option>
+              <option value={60}>60 seconds</option>
+              <option value={90}> seconds</option>
+              
+              
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium">Cart Items Display</label>
             <select
-              value={form.itemsDisplay}
-              onChange={(e) => handleChange("itemsDisplay", e.target.value)}
+              value={form.cartItemsDisplay}
+              onChange={(e) => handleChange("cartItemsDisplay", e.target.value)}
               className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
             >
-              <option>Show 2 items + more</option>
-              <option>Show 1 item</option>
-              <option>Show all items</option>
+              <option value="show_2_plus">Show 2 items + more</option>
+              <option value="show_3_plus">Show 3 items + more</option>
+              <option value="show_all">Show all items</option>
             </select>
           </div>
         </div>
@@ -99,6 +126,29 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
           />
         </div>
 
+        {/* Button color + Cart URL */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">Button Color</label>
+            <input
+              type="color"
+              value={form.buttonColor}
+              onChange={(e) => handleChange("buttonColor", e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-10"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Cart URL</label>
+            <input
+              type="url"
+              placeholder="https://yourstore.com/cart"
+              value={form.cartUrl}
+              onChange={(e) => handleChange("cartUrl", e.target.value)}
+              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
         {/* CTA */}
         <div>
           <label className="block text-sm font-medium">Call-to-Action Button</label>
@@ -107,9 +157,9 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
             onChange={(e) => handleChange("cta", e.target.value)}
             className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
           >
-            <option>Complete Purchase</option>
-            <option>Checkout Now</option>
-            <option>Continue Shopping</option>
+            <option value="complete_purchase">Complete Purchase</option>
+            <option value="go_to_checkout">Go to Checkout</option>
+            <option value="view_cart">View Cart</option>
           </select>
         </div>
 
@@ -126,7 +176,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
             type="submit"
             className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
           >
-            Create Campaign
+            {initialData?._id ? 'Update Campaign' : 'Create Campaign'}
           </button>
         </div>
       </div>
@@ -152,11 +202,25 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
                 <p className="text-xs text-gray-500">$24.99</p>
               </div>
             </div>
-            <p className="text-xs text-gray-400">+ 2 more items in your cart</p>
+            {form.cartItemsDisplay === 'show_2_plus' && (
+              <p className="text-xs text-gray-400">+ 2 more items in your cart</p>
+            )}
+            {form.cartItemsDisplay === 'show_3_plus' && (
+              <p className="text-xs text-gray-400">+ 3 more items in your cart</p>
+            )}
+            {form.cartItemsDisplay === 'show_all' && (
+              <p className="text-xs text-gray-400">Showing all items</p>
+            )}
           </div>
-          <button className="w-full mt-3 py-2 rounded-lg bg-blue-600 text-white text-sm">
-            {form.cta}
-          </button>
+          <a
+            href={form.cartUrl || '#'}
+            className="w-full mt-3 py-2 rounded-lg text-white text-sm inline-flex justify-center"
+            style={{ backgroundColor: form.buttonColor }}
+          >
+            {form.cta === 'complete_purchase' && 'Complete Purchase'}
+            {form.cta === 'go_to_checkout' && 'Go to Checkout'}
+            {form.cta === 'view_cart' && 'View Cart'}
+          </a>
           <button className="w-full mt-1 py-1 text-xs text-gray-500">
             Continue Shopping
           </button>
