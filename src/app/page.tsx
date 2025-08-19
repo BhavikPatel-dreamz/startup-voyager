@@ -21,7 +21,7 @@ export default function Page() {
           </p>
           <Button 
             size="lg" 
-            className="bg-primary hover:bg-blue-600 text-white px-8 py-3"
+            className="bg-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
             onClick={() => window.location.href = "/login"}
           >
             Sign In

@@ -42,14 +42,14 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
   return (
     <form onSubmit={handleSubmit} className="flex gap-6 text-black  min-w-5xl">
       {/* Left Form Section */}
-      <div className="flex-1 space-y-4">
+      <div className="w-[56%] space-y-4">
         {/* Connected Site */}
         <div>
           <label className="block text-sm font-medium">Connected Site</label>
           <select
             value={form.connectedSite}
             onChange={(e) => handleChange("connectedSite", e.target.value)}
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
           >
             <option value="">Select a site...</option>
             {sites.map((s) => (
@@ -68,7 +68,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
             placeholder="Enter campaign name"
             value={form.name}
             onChange={(e) => handleChange("name", e.target.value)}
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
           />
         </div>
 
@@ -79,7 +79,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
             <select
               value={form.inactivityThreshold}
               onChange={(e) => handleChange("inactivityThreshold", Number(e.target.value))}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
             >
               <option value={5}>5 seconds</option>
               <option value={15}>15 seconds</option>
@@ -96,7 +96,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
             <select
               value={form.cartItemsDisplay}
               onChange={(e) => handleChange("cartItemsDisplay", e.target.value)}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
             >
               <option value="show_2_plus">Show 2 items + more</option>
               <option value="show_3_plus">Show 3 items + more</option>
@@ -112,7 +112,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
             type="text"
             value={form.headline}
             onChange={(e) => handleChange("headline", e.target.value)}
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
           <textarea
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
           />
         </div>
 
@@ -134,7 +134,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
               type="color"
               value={form.buttonColor}
               onChange={(e) => handleChange("buttonColor", e.target.value)}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm h-10"
+              className="mt-1 w-full border rounded-lg px-3 py-3 text-sm h-12"
             />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
               placeholder="https://yourstore.com/cart"
               value={form.cartUrl}
               onChange={(e) => handleChange("cartUrl", e.target.value)}
-              className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+              className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
             />
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
           <select
             value={form.cta}
             onChange={(e) => handleChange("cta", e.target.value)}
-            className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
+            className="mt-1 w-full border rounded-lg px-3 py-3 text-sm"
           >
             <option value="complete_purchase">Complete Purchase</option>
             <option value="go_to_checkout">Go to Checkout</option>
@@ -182,7 +182,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
       </div>
 
       {/* Right Preview Section */}
-      <div className="w-80 bg-gray-50 rounded-lg p-4 border">
+      <div className="w-[44%] bg-gray-50 rounded-lg p-6 border">
         <h3 className="text-sm font-medium mb-2">Live Preview</h3>
         <div className="bg-white rounded-lg p-4 shadow">
           <h4 className="font-bold">{form.headline}</h4>
