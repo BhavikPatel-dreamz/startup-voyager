@@ -1,6 +1,5 @@
 import { connectToDatabase } from "../../../../lib/mongoose";
 import User from "../../../../models/User";
-import bcrypt from "bcryptjs";
 
 export async function POST(req) {
 	try {
@@ -42,15 +41,12 @@ export async function POST(req) {
 			);
 		}
 
-		// Hash password
-		const hashedPassword = await bcrypt.hash(password, 12);
-
-		// Create new user
+		// Create new user (password will be automatically hashed by the User model middleware)
 		const user = new User({
 			firstName: firstName.trim(),
 			lastName: lastName.trim(),
 			email: email.toLowerCase().trim(),
-			password: hashedPassword,
+			password: password, // Pass plain text password - it will be hashed by the pre-save middleware
 			businessName: businessName.trim(),
 			role: 'viewer', // Default role
 			createdAt: new Date()
