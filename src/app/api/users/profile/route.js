@@ -33,7 +33,6 @@ export async function PUT(req) {
 export async function DELETE() {
   const session = await getServerSession();
 
-  console.log(session)
 
   if (!session || !session.user?.email) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });

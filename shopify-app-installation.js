@@ -39,7 +39,7 @@ class ShopifyTrackingInstaller {
       };
 
       const result = await this.shopify.scriptTag.create(scriptTag);
-      console.log('Script tag created:', result.id);
+      
 
       // Also add the configuration script to theme.liquid
       await this.addConfigurationToTheme(clientId, apiKey, endpoint);

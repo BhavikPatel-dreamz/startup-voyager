@@ -22,10 +22,10 @@ dotenv.config(); // Load .env.local if needed
 async function runMigration() {
   try {
     const uri = process.env.MONGODB_URI || "mongodb+srv://programmer119dynamicdreamz:test1234@cluster0.pamppes.mongodb.net/" // Make sure this is correct
-    console.log("Connecting to MongoDB...",uri);
+    
     await mongoose.connect(uri, {});
 
-    console.log("Ensuring indexes for User collection...");
+    
     await User.init(); // This creates all indexes from your schema
     await Visitor.init(); // This creates all indexes from your schema
     await Session.init(); // This creates all indexes from your schema

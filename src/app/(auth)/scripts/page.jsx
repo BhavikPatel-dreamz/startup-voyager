@@ -49,7 +49,6 @@ function ScriptsClient() {
     const fetchSites = useCallback(async () => {
         try {
             setLoading(true);
-            console.log("fetching sites with filters", debouncedSearch, platformFilter, statusFilter, currentPage);
             const result = await fetchSitesWithFilters({
                 search: debouncedSearch,
                 platform: platformFilter || null,

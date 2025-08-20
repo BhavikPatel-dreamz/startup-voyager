@@ -8,7 +8,7 @@ export default function Userstatus() {
     const handleLogout = () => {
       signOut({ callbackUrl: "/login" });
     };
-    console.log(session)
+    
   return (
     user && 
     <div className='p-4 border-t border-slate-200'>

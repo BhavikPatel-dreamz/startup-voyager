@@ -16,11 +16,7 @@ export default async function EditScriptPage({ params }) {
     ]);
 
     const site = scriptResult.success ? scriptResult.data : null;
-    console.log(site)
-
-     const siteAccess = accessResult.success ? accessResult.data : [];
-     console.log(siteAccess)
-     
+    const siteAccess = accessResult.success ? accessResult.data : [];
 
     if (!site) {
         return (

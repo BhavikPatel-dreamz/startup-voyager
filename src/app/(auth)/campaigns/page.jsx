@@ -31,7 +31,7 @@ function CampaignsPage() {
                 params.set('page', String(pageNum));
                 params.set('limit', '10');
                 const res = await fetch(`/api/campaigns?${params.toString()}`);
-                console.log(res)
+                
                 if (res.ok) {
                     const data = await res.json();
                     const mapped = (data.data || []).map(c => ({

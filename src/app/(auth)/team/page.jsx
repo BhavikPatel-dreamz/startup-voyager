@@ -84,7 +84,7 @@ const TeamManagement = () => {
                 );
                 
                 // Show success message (you could add a toast notification here)
-                console.log(result.message);
+                
             } else {
                 console.error('Failed to update role:', result.message);
                 // You could show an error message to the user here

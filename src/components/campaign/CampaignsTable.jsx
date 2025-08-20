@@ -5,8 +5,6 @@ import Pagination from "../team/Pagination";
 
 export default function CampaignsTable({ pagination, campaigns, onAction, isLoading = false}) {
 
-  console.log(campaigns)
-
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="p-6 flex justify-between items-center">
