@@ -1,29 +1,32 @@
 /**
  * Universal E-commerce Analytics Tracking Script
- * Lightweight script that can be embedded on any website
- * Supports WooCommerce, Shopify, and custom e-commerce platforms
+ * Updated to work with ConnectedSite and Campaign schemas
+ * Supports cart abandonment popups and comprehensive analytics
  */
 
 (function() {
   'use strict';
 
-  // Configuration
-  const ANALYTICS_ENDPOINT = 'https://webhook.site/9752a9dd-5a2d-4f90-87be-c9cdd5102aeb';
+  // Configuration - Update these endpoints to match your Next.js app
+  const API_BASE_URL = 'https://your-nextjs-app.com/api';
+  const WEBHOOK_SECRET = 'your-very-secret-token';
   
   class EcommerceTracker {
     constructor(config) {
       this.config = {
-        storeId: config.storeId || null,
+        clientId: config.clientId || config.storeId || null, // Your ConnectedSite clientId
         apiKey: config.apiKey || null,
-        endpoint: config.endpoint || ANALYTICS_ENDPOINT,
+        campaignEndpoint: config.campaignEndpoint || `${API_BASE_URL}/campaign-settings`,
+        webhookEndpoint: config.webhookEndpoint || `${API_BASE_URL}/webhook`,
         autoTrack: config.autoTrack !== false,
         debug: config.debug || false,
         sessionTimeout: config.sessionTimeout || 30 * 60 * 1000, // 30 minutes
+        cartAbandonmentDelay: config.cartAbandonmentDelay || 60000, // 1 minute default
         ...config
       };
 
-      if (!this.config.storeId) {
-        this.log('Error: storeId is required');
+      if (!this.config.clientId) {
+        this.log('Error: clientId is required');
         return;
       }
 
@@ -33,11 +36,14 @@
       this.platform = this.detectPlatform();
       this.eventQueue = [];
       this.isOnline = navigator.onLine;
+      this.cartData = null;
+      this.cartAbandonmentTimer = null;
+      this.activeCampaign = null;
 
       this.init();
     }
 
-    init() {
+    async init() {
       this.setupEventListeners();
       this.trackPageView();
       
@@ -45,572 +51,588 @@
         this.setupAutoTracking();
       }
 
-      // Process offline events when back online
-      window.addEventListener('online', () => {
-        this.isOnline = true;
-        this.processEventQueue();
-      });
-
-      window.addEventListener('offline', () => {
-        this.isOnline = false;
-      });
-
-      this.log('Analytics initialized for store:', this.config.storeId);
+      // Fetch active campaign settings
+      await this.fetchAndSetupCampaign();
+      
+      // Setup offline/online handlers
+      this.setupNetworkHandlers();
+      
+      // Setup cart abandonment tracking
+      this.setupCartAbandonmentTracking();
+      
+      this.log('Analytics initialized for client:', this.config.clientId);
     }
 
-    // Generate unique session ID
-    generateSessionId() {
-      return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    // Get or create persistent visitor ID
-    getOrCreateVisitorId() {
-      let visitorId = this.getLocalStorage('ea_visitor_id');
-      if (!visitorId) {
-        visitorId = 'vis_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        this.setLocalStorage('ea_visitor_id', visitorId);
-      }
-      return visitorId;
-    }
-
-    // Detect e-commerce platform
-    detectPlatform() {
-      if (window.wc_add_to_cart_params || document.querySelector('.woocommerce')) {
-        return 'woocommerce';
-      }
-      if (window.Shopify || document.querySelector('[data-shopify]')) {
-        return 'shopify';
-      }
-      if (window.Magento || document.querySelector('.magento')) {
-        return 'magento';
-      }
-      if (document.querySelector('.bigcommerce')) {
-        return 'bigcommerce';
-      }
-      return 'custom';
-    }
-
-    // Setup automatic tracking based on platform
-    setupAutoTracking() {
-      switch (this.platform) {
-        case 'woocommerce':
-          this.setupWooCommerceTracking();
-          break;
-        case 'shopify':
-          this.setupShopifyTracking();
-          break;
-        default:
-          this.setupGenericTracking();
+    // Fetch active campaign from your backend
+    async fetchAndSetupCampaign() {
+      try {
+        const response = await fetch(`${this.config.campaignEndpoint}?clientId=${encodeURIComponent(this.config.clientId)}`);
+        
+        if (!response.ok) {
+          this.log('No active campaigns found');
+          return null;
+        }
+        
+        const campaignData = await response.json();
+        this.activeCampaign = campaignData;
+        
+        this.log('Active campaign loaded:', campaignData.campaignId);
+        return campaignData;
+        
+      } catch (error) {
+        this.log('Failed to fetch campaign settings:', error);
+        return null;
       }
     }
 
-    // WooCommerce specific tracking
-    setupWooCommerceTracking() {
-      // Track add to cart buttons
+    // Setup cart abandonment tracking
+    setupCartAbandonmentTracking() {
+      // Track when user interacts with cart
+      this.setupCartInteractionTracking();
+      
+      // Monitor for inactivity after cart interaction
+      this.setupInactivityMonitoring();
+      
+      // Track mouse movement to detect user leaving
+      this.setupMouseLeaveDetection();
+    }
+
+    setupCartInteractionTracking() {
+      const cartSelectors = [
+        '.cart', '[data-cart]', '.shopping-cart',
+        '.add-to-cart', '.add_to_cart_button', 
+        '[data-action="add-to-cart"]', '.single_add_to_cart_button'
+      ];
+
       document.addEventListener('click', (e) => {
-        if (e.target.matches('.add_to_cart_button, .single_add_to_cart_button')) {
-          const productId = e.target.getAttribute('data-product_id');
-          const productData = this.extractWooProductData(e.target);
-          if (productData) {
-            this.trackAddToCart(productData);
-          }
+        if (cartSelectors.some(selector => e.target.matches(selector) || e.target.closest(selector))) {
+          this.handleCartInteraction(e);
         }
       });
 
-      // Track product views on single product pages
-      if (document.body.classList.contains('single-product')) {
-        const productData = this.extractWooProductFromPage();
-        if (productData) {
-          this.trackProductView(productData);
-        }
-      }
-
-      // Track order completion
-      if (document.body.classList.contains('woocommerce-order-received')) {
-        const orderData = this.extractWooOrderData();
-        if (orderData) {
-          this.trackPurchase(orderData);
-        }
-      }
-    }
-
-    // Shopify specific tracking
-    setupShopifyTracking() {
-      this.log('Setting up enhanced Shopify tracking');
-      
-      // Track add to cart with enhanced detection
-      this.setupShopifyAddToCartTracking();
-      
-      // Track product views with better data extraction
-      this.setupShopifyProductViewTracking();
-      
-      // Track cart updates and removals
-      this.setupShopifyCartTracking();
-      
-      // Track checkout process
-      this.setupShopifyCheckoutTracking();
-      
-      // Track collection/category views
-      this.setupShopifyCollectionTracking();
-      
-      // Track search functionality
-      this.setupShopifySearchTracking();
-      
-      // Track customer behavior
-      this.setupShopifyCustomerTracking();
-      
-      // Listen for Shopify analytics events
-      this.setupShopifyAnalyticsIntegration();
-      
-      // Track AJAX cart updates
-      this.setupShopifyAjaxTracking();
-      
-      // Track product recommendations and social features
-      this.setupShopifyAdvancedTracking();
-    }
-
-    setupShopifyAddToCartTracking() {
-      // Track form submissions for add to cart
-      document.addEventListener('submit', (e) => {
-        if (e.target.matches('form[action="/cart/add"], form[action*="/cart/add"]')) {
-          const productData = this.extractShopifyProductData(e.target);
-          if (productData) {
-            const quantity = this.extractQuantityFromForm(e.target);
-            setTimeout(() => this.trackAddToCart(productData, quantity), 100);
-          }
-        }
-      });
-
-      // Track AJAX add to cart buttons
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="add-to-cart"], .add-to-cart, [class*="add-to-cart"]')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackAddToCart(productData, 1);
-          }
-        }
-      });
-
-      // Track buy now buttons
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="buy-now"], .buy-now, [class*="buy-now"]')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackEvent('buy_now_clicked', productData);
-          }
-        }
-      });
-    }
-
-    setupShopifyProductViewTracking() {
-      // Track product views on product pages
-      if (window.location.pathname.includes('/products/')) {
-        const productData = this.extractShopifyProductFromPage();
-        if (productData) {
-          this.trackProductView(productData);
-        }
-      }
-
-      // Track product quick view
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="quick-view"], .quick-view, [class*="quick-view"]')) {
-          const productData = this.extractShopifyProductFromQuickView(e.target);
-          if (productData) {
-            this.trackEvent('product_quick_view', productData);
-          }
-        }
-      });
-    }
-
-    setupShopifyCartTracking() {
-      // Track cart updates
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="update-cart"], .update-cart, [class*="update-cart"]')) {
-          this.trackEvent('cart_updated');
-        }
-      });
-
-      // Track remove from cart
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="remove"], .remove-item, [class*="remove"]')) {
-          const productData = this.extractShopifyProductFromCartItem(e.target);
-          if (productData) {
-            this.trackRemoveFromCart(productData, 1);
-          }
-        }
-      });
-
-      // Track cart page view
+      // Monitor cart page visits
       if (window.location.pathname.includes('/cart')) {
-        this.trackEvent('cart_viewed', {
-          cart_total: this.extractCartTotal(),
-          item_count: this.extractCartItemCount()
-        });
+        this.handleCartPageView();
       }
     }
 
-    setupShopifyCheckoutTracking() {
-      // Track checkout initiation
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="checkout"], .checkout, [class*="checkout"]')) {
-          this.trackEvent('checkout_initiated', {
-            cart_total: this.extractCartTotal(),
-            item_count: this.extractCartItemCount()
+    handleCartInteraction(event) {
+      // Clear existing abandonment timer
+      if (this.cartAbandonmentTimer) {
+        clearTimeout(this.cartAbandonmentTimer);
+      }
+
+      // Extract cart data based on platform
+      const cartData = this.extractCurrentCartData();
+      this.cartData = cartData;
+
+      // Track the cart interaction
+      if (event.target.matches('.add-to-cart, .add_to_cart_button, [data-action="add-to-cart"]')) {
+        const productData = this.extractProductDataFromEvent(event);
+        this.trackAddToCart(productData);
+      }
+
+      // Start abandonment monitoring if cart has items
+      if (cartData && cartData.itemCount > 0) {
+        this.startAbandonmentTimer();
+      }
+    }
+
+    handleCartPageView() {
+      const cartData = this.extractCurrentCartData();
+      this.cartData = cartData;
+      
+      this.trackEvent('cart_viewed', { cart: cartData });
+      
+      if (cartData && cartData.itemCount > 0) {
+        this.startAbandonmentTimer();
+      }
+    }
+
+    startAbandonmentTimer() {
+      if (!this.activeCampaign || !this.cartData) return;
+      
+      const delay = this.activeCampaign.popupDelayMs || this.config.cartAbandonmentDelay;
+      
+      this.cartAbandonmentTimer = setTimeout(() => {
+        this.handleCartAbandonment();
+      }, delay);
+    }
+
+    handleCartAbandonment() {
+      if (!this.activeCampaign || !this.cartData) return;
+      
+      // Check if cart meets campaign criteria
+      const shouldShowPopup = this.shouldShowAbandonmentPopup();
+      
+      if (shouldShowPopup) {
+        this.showCartAbandonmentPopup();
+      }
+    }
+
+    shouldShowAbandonmentPopup() {
+      if (!this.cartData || !this.activeCampaign) return false;
+      
+      const itemCount = this.cartData.itemCount || 0;
+      const display = this.activeCampaign.cartItemsDisplay;
+      
+      switch (display) {
+        case 'show_2_plus':
+          return itemCount >= 2;
+        case 'show_3_plus':
+          return itemCount >= 3;
+        case 'show_all':
+          return itemCount > 0;
+        default:
+          return itemCount > 0;
+      }
+    }
+
+    showCartAbandonmentPopup() {
+      // Prevent multiple popups
+      if (document.getElementById('cart-abandonment-popup')) return;
+      
+      const campaign = this.activeCampaign;
+      const popup = document.createElement('div');
+      popup.id = 'cart-abandonment-popup';
+      popup.innerHTML = this.generatePopupHTML(campaign);
+      
+      // Style the popup
+      this.stylePopup(popup);
+      
+      document.body.appendChild(popup);
+      
+      // Track popup shown
+      this.trackCampaignEvent('popup_shown', {
+        campaignId: campaign.campaignId,
+        cartData: this.cartData
+      });
+      
+      // Setup popup event listeners
+      this.setupPopupEventListeners(popup, campaign);
+      
+      // Auto-hide after 30 seconds
+      setTimeout(() => {
+        if (popup.parentNode) {
+          this.closePopup(popup, 'auto_closed');
+        }
+      }, 30000);
+    }
+
+    generatePopupHTML(campaign) {
+      const cartItems = this.getDisplayCartItems();
+      const ctaText = this.getCTAText(campaign.cta);
+      
+      return `
+        <div class="popup-overlay">
+          <div class="popup-content">
+            <div class="popup-header">
+              <h3>${campaign.popupTitle || campaign.headline}</h3>
+              <button class="popup-close" data-action="close">×</button>
+            </div>
+            <div class="popup-body">
+              <p>${campaign.popupMessage || campaign.description}</p>
+              ${cartItems.length > 0 ? `
+                <div class="cart-items">
+                  ${cartItems.map(item => `
+                    <div class="cart-item">
+                      ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-image">` : ''}
+                      <div class="item-details">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-price">$${item.price}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+              <div class="popup-actions">
+                <button class="popup-cta" data-action="cta" style="background-color: ${campaign.buttonColor};">
+                  ${ctaText}
+                </button>
+                <button class="popup-dismiss" data-action="dismiss">Maybe Later</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    stylePopup(popup) {
+      popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+      
+      // Add CSS for popup content
+      const style = document.createElement('style');
+      style.textContent = `
+        #cart-abandonment-popup .popup-content {
+          background: white;
+          border-radius: 12px;
+          padding: 24px;
+          max-width: 400px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        #cart-abandonment-popup .popup-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+        #cart-abandonment-popup .popup-header h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+        #cart-abandonment-popup .popup-close {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+        }
+        #cart-abandonment-popup .cart-items {
+          margin: 16px 0;
+        }
+        #cart-abandonment-popup .cart-item {
+          display: flex;
+          align-items: center;
+          padding: 8px 0;
+          border-bottom: 1px solid #f0f0f0;
+        }
+        #cart-abandonment-popup .item-image {
+          width: 40px;
+          height: 40px;
+          object-fit: cover;
+          border-radius: 4px;
+          margin-right: 12px;
+        }
+        #cart-abandonment-popup .item-details {
+          flex: 1;
+        }
+        #cart-abandonment-popup .item-name {
+          display: block;
+          font-weight: 500;
+        }
+        #cart-abandonment-popup .item-price {
+          color: #666;
+          font-size: 14px;
+        }
+        #cart-abandonment-popup .popup-actions {
+          margin-top: 20px;
+          display: flex;
+          gap: 12px;
+        }
+        #cart-abandonment-popup .popup-cta {
+          flex: 1;
+          padding: 12px 16px;
+          border: none;
+          border-radius: 6px;
+          color: white;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+        }
+        #cart-abandonment-popup .popup-dismiss {
+          padding: 12px 16px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          background: white;
+          color: #666;
+          cursor: pointer;
+          font-size: 14px;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    setupPopupEventListeners(popup, campaign) {
+      popup.addEventListener('click', (e) => {
+        const action = e.target.getAttribute('data-action');
+        
+        switch (action) {
+          case 'close':
+            this.closePopup(popup, 'user_closed');
+            break;
+          case 'cta':
+            this.handlePopupCTA(popup, campaign);
+            break;
+          case 'dismiss':
+            this.closePopup(popup, 'user_dismissed');
+            break;
+        }
+      });
+    }
+
+    handlePopupCTA(popup, campaign) {
+      // Track CTA click
+      this.trackCampaignEvent('popup_clicked', {
+        campaignId: campaign.campaignId,
+        cta: campaign.cta,
+        cartData: this.cartData
+      });
+      
+      // Redirect based on CTA type
+      const redirectUrl = this.getCTARedirectUrl(campaign);
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      }
+      
+      this.closePopup(popup, 'cta_clicked');
+    }
+
+    getCTARedirectUrl(campaign) {
+      switch (campaign.cta) {
+        case 'complete_purchase':
+          return this.getCheckoutUrl();
+        case 'go_to_checkout':
+          return this.getCheckoutUrl();
+        case 'view_cart':
+          return campaign.cartUrl || this.getCartUrl();
+        default:
+          return this.getCartUrl();
+      }
+    }
+
+    getCTAText(ctaType) {
+      switch (ctaType) {
+        case 'complete_purchase':
+          return 'Complete Purchase';
+        case 'go_to_checkout':
+          return 'Go to Checkout';
+        case 'view_cart':
+          return 'View Cart';
+        default:
+          return 'Complete Purchase';
+      }
+    }
+
+    closePopup(popup, reason) {
+      popup.remove();
+      
+      this.trackCampaignEvent('popup_closed', {
+        campaignId: this.activeCampaign?.campaignId,
+        reason: reason,
+        cartData: this.cartData
+      });
+    }
+
+    getDisplayCartItems() {
+      if (!this.cartData || !this.cartData.items) return [];
+      
+      const display = this.activeCampaign?.cartItemsDisplay || 'show_all';
+      const items = this.cartData.items;
+      
+      switch (display) {
+        case 'show_2_plus':
+          return items.slice(0, 2);
+        case 'show_3_plus':
+          return items.slice(0, 3);
+        case 'show_all':
+        default:
+          return items;
+      }
+    }
+
+    setupInactivityMonitoring() {
+      let lastActivity = Date.now();
+      
+      const updateActivity = () => {
+        lastActivity = Date.now();
+      };
+      
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, updateActivity, true);
+      });
+      
+      // Check for inactivity every 10 seconds
+      setInterval(() => {
+        const inactiveTime = Date.now() - lastActivity;
+        const threshold = (this.activeCampaign?.popupDelayMs || 30000);
+        
+        if (inactiveTime > threshold && this.cartData && this.cartData.itemCount > 0) {
+          if (!document.getElementById('cart-abandonment-popup')) {
+            this.handleCartAbandonment();
+          }
+        }
+      }, 10000);
+    }
+
+    setupMouseLeaveDetection() {
+      document.addEventListener('mouseleave', () => {
+        if (this.cartData && this.cartData.itemCount > 0) {
+          setTimeout(() => {
+            if (!document.getElementById('cart-abandonment-popup')) {
+              this.handleCartAbandonment();
+            }
+          }, 1000);
+        }
+      });
+    }
+
+    // Extract current cart data based on platform
+    extractCurrentCartData() {
+      switch (this.platform) {
+        case 'Shopify':
+          return this.extractShopifyCartData();
+        case 'WooCommerce':
+          return this.extractWooCommerceCartData();
+        default:
+          return this.extractGenericCartData();
+      }
+    }
+
+    extractShopifyCartData() {
+      try {
+        // Try to get cart data from Shopify's global variables
+        if (window.Shopify && window.Shopify.cart) {
+          return this.formatCartData(window.Shopify.cart);
+        }
+
+        // Try to extract from cart drawer/page
+        const cartElement = document.querySelector('.cart, [data-cart], .cart-drawer');
+        if (cartElement) {
+          return this.extractCartDataFromDOM(cartElement);
+        }
+
+        // Fallback: Make AJAX request to cart.js
+        fetch('/cart.js')
+          .then(response => response.json())
+          .then(cart => {
+            this.cartData = this.formatCartData(cart);
+          })
+          .catch(() => {});
+
+        return null;
+      } catch (error) {
+        this.log('Error extracting Shopify cart data:', error);
+        return null;
+      }
+    }
+
+    extractWooCommerceCartData() {
+      try {
+        // Extract from WooCommerce cart page
+        const cartForm = document.querySelector('.woocommerce-cart-form, .cart_totals');
+        if (cartForm) {
+          return this.extractWooCartFromPage(cartForm);
+        }
+
+        // Extract from mini cart
+        const miniCart = document.querySelector('.widget_shopping_cart, .mini-cart');
+        if (miniCart) {
+          return this.extractWooCartFromWidget(miniCart);
+        }
+
+        return null;
+      } catch (error) {
+        this.log('Error extracting WooCommerce cart data:', error);
+        return null;
+      }
+    }
+
+    extractGenericCartData() {
+      // Generic cart extraction for custom platforms
+      const cartSelectors = ['.cart', '[data-cart]', '.shopping-cart', '.basket'];
+      
+      for (const selector of cartSelectors) {
+        const cartElement = document.querySelector(selector);
+        if (cartElement) {
+          return this.extractCartDataFromDOM(cartElement);
+        }
+      }
+      
+      return null;
+    }
+
+    formatCartData(cartObj) {
+      const items = (cartObj.items || []).map(item => ({
+        product_id: item.product_id || item.id,
+        name: item.product_title || item.title || item.name,
+        price: item.price ? (item.price / 100) : 0, // Shopify prices are in cents
+        quantity: item.quantity,
+        variant_id: item.variant_id,
+        sku: item.sku,
+        image: item.image || item.featured_image?.url
+      }));
+
+      return {
+        total: cartObj.total_price ? (cartObj.total_price / 100) : 0,
+        currency: cartObj.currency || 'USD',
+        itemCount: cartObj.item_count || items.reduce((sum, item) => sum + item.quantity, 0),
+        items: items
+      };
+    }
+
+    extractCartDataFromDOM(cartElement) {
+      const items = [];
+      const itemElements = cartElement.querySelectorAll('.cart-item, .line-item, [data-cart-item]');
+      
+      itemElements.forEach(itemEl => {
+        const name = itemEl.querySelector('.item-name, .product-name, h3, h4')?.textContent?.trim();
+        const priceText = itemEl.querySelector('.price, .amount, .cost')?.textContent?.trim();
+        const price = priceText ? parseFloat(priceText.replace(/[^0-9.]/g, '')) : 0;
+        const quantityEl = itemEl.querySelector('input[type="number"], .quantity');
+        const quantity = quantityEl ? parseInt(quantityEl.value || quantityEl.textContent) : 1;
+        const image = itemEl.querySelector('img')?.src;
+
+        if (name) {
+          items.push({
+            name,
+            price,
+            quantity,
+            image
           });
         }
       });
 
-      // Track checkout steps
-      if (window.location.pathname.includes('/checkout')) {
-        const step = this.detectCheckoutStep();
-        this.trackEvent('checkout_step_viewed', { step });
-      }
+      const totalEl = cartElement.querySelector('.cart-total, .total, [data-cart-total]');
+      const total = totalEl ? parseFloat(totalEl.textContent.replace(/[^0-9.]/g, '')) : 0;
+      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-      // Track order completion
-      if (window.location.pathname.includes('/orders/') && window.location.pathname.includes('/thank_you')) {
-        const orderData = this.extractShopifyOrderData();
-        if (orderData) {
-          this.trackPurchase(orderData);
-        }
-      }
-    }
-
-    setupShopifyCollectionTracking() {
-      // Track collection/category views
-      if (window.location.pathname.includes('/collections/')) {
-        const collectionData = this.extractShopifyCollectionData();
-        if (collectionData) {
-          this.trackEvent('collection_viewed', collectionData);
-        }
-      }
-
-      // Track collection filtering
-      document.addEventListener('change', (e) => {
-        if (e.target.matches('select[data-filter], input[data-filter]')) {
-          const filterData = this.extractShopifyFilterData(e.target);
-          if (filterData) {
-            this.trackEvent('collection_filtered', filterData);
-          }
-        }
-      });
-    }
-
-    setupShopifySearchTracking() {
-      // Track search form submissions
-      document.addEventListener('submit', (e) => {
-        if (e.target.matches('form[action="/search"], form[action*="/search"]')) {
-          const query = e.target.querySelector('input[name="q"], input[type="search"]')?.value;
-          if (query) {
-            this.trackSearch(query);
-          }
-        }
-      });
-
-      // Track search suggestions
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('.search-suggestion, [data-search-suggestion]')) {
-          const query = e.target.textContent.trim();
-          this.trackEvent('search_suggestion_clicked', { query });
-        }
-      });
-    }
-
-    setupShopifyCustomerTracking() {
-      // Track customer login
-      if (window.location.pathname.includes('/account/login')) {
-        this.trackEvent('customer_login_page_viewed');
-      }
-
-      // Track customer registration
-      if (window.location.pathname.includes('/account/register')) {
-        this.trackEvent('customer_register_page_viewed');
-      }
-
-      // Track customer account pages
-      if (window.location.pathname.includes('/account')) {
-        this.trackEvent('customer_account_page_viewed', {
-          page: window.location.pathname.split('/').pop() || 'dashboard'
-        });
-      }
-
-      // Track wishlist actions
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-action="wishlist"], .wishlist, [class*="wishlist"]')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackEvent('wishlist_toggled', productData);
-          }
-        }
-      });
-    }
-
-    setupShopifyAnalyticsIntegration() {
-      // Method 1: Enhanced ShopifyAnalytics interception
-      this.setupShopifyAnalyticsInterception();
-      
-      // Method 2: Direct ShopifyAnalytics.lib.track override
-      this.setupShopifyAnalyticsOverride();
-      
-      // Method 3: Shopify native events
-      this.setupShopifyNativeEvents();
-    }
-
-    setupShopifyAnalyticsInterception() {
-      if (window.ShopifyAnalytics && window.ShopifyAnalytics.lib) {
-        const originalTrack = window.ShopifyAnalytics.lib.track;
-
-        window.ShopifyAnalytics.lib.track = (eventName, eventProperties, ...rest) => {
-          // Intercept and track specific Shopify events
-          this.interceptShopifyEvent(eventName, eventProperties);
-
-          // Call original function to keep Shopify tracking intact
-          return originalTrack.call(this, eventName, eventProperties, ...rest);
-        };
-
-        this.log('ShopifyAnalytics interception setup complete');
-      }
-    }
-
-    setupShopifyAnalyticsOverride() {
-      // Fallback method for older Shopify themes
-      if (window.ShopifyAnalytics && window.ShopifyAnalytics.lib) {
-        const originalTrack = window.ShopifyAnalytics.lib.track;
-        if (originalTrack) {
-          window.ShopifyAnalytics.lib.track = (event, properties) => {
-            this.handleShopifyEvent(event, properties);
-            return originalTrack.call(window.ShopifyAnalytics.lib, event, properties);
-          };
-        }
-      }
-    }
-
-    setupShopifyNativeEvents() {
-      // Listen for Shopify's native events
-      if (window.Shopify) {
-        document.addEventListener('shopify:section:load', (e) => {
-          this.trackEvent('section_loaded', { section_id: e.detail.sectionId });
-        });
-
-        document.addEventListener('shopify:section:reorder', (e) => {
-          this.trackEvent('section_reordered', { section_id: e.detail.sectionId });
-        });
-
-        document.addEventListener('shopify:block:select', (e) => {
-          this.trackEvent('block_selected', { 
-            block_id: e.detail.blockId,
-            section_id: e.detail.sectionId 
-          });
-        });
-      }
-    }
-
-    interceptShopifyEvent(eventName, eventProperties) {
-      // Map of Shopify events to our tracking events
-      const eventMap = {
-        'Viewed Product': 'product_view',
-        'Added Product': 'add_to_cart',
-        'Removed Product': 'remove_from_cart',
-        'Viewed Cart': 'cart_viewed',
-        'Started Checkout': 'checkout_initiated',
-        'Completed Order': 'purchase',
-        'Searched': 'search',
-        'Viewed Collection': 'collection_viewed',
-        'Viewed Page': 'page_view',
-        'Viewed Home': 'home_viewed',
-        'Viewed Search Results': 'search_results_viewed',
-        'Viewed Product List': 'product_list_viewed',
-        'Viewed Product Details': 'product_details_viewed',
-        'Added to Wishlist': 'wishlist_added',
-        'Removed from Wishlist': 'wishlist_removed',
-        'Viewed Wishlist': 'wishlist_viewed',
-        'Applied Discount': 'discount_applied',
-        'Viewed Blog': 'blog_viewed',
-        'Viewed Article': 'article_viewed',
-        'Subscribed to Newsletter': 'newsletter_subscribed',
-        'Contacted Support': 'support_contacted',
-        'Viewed FAQ': 'faq_viewed',
-        'Viewed About': 'about_viewed',
-        'Viewed Contact': 'contact_viewed',
-        'Viewed Terms': 'terms_viewed',
-        'Viewed Privacy': 'privacy_viewed',
-        'Viewed Shipping': 'shipping_viewed',
-        'Viewed Returns': 'returns_viewed',
-        'Viewed Size Guide': 'size_guide_viewed',
-        'Viewed Product Video': 'product_video_viewed',
-        'Viewed Product Image': 'product_image_viewed',
-        'Viewed Product Reviews': 'product_reviews_viewed',
-        'Wrote Review': 'review_written',
-        'Rated Product': 'product_rated',
-        'Shared Product': 'product_shared',
-        'Viewed Related Products': 'related_products_viewed',
-        'Viewed Recently Viewed': 'recently_viewed_viewed',
-        'Viewed Recommendations': 'recommendations_viewed',
-        'Viewed Trending': 'trending_viewed',
-        'Viewed Sale': 'sale_viewed',
-        'Viewed New Arrivals': 'new_arrivals_viewed',
-        'Viewed Best Sellers': 'best_sellers_viewed',
-        'Viewed Featured': 'featured_viewed',
-        'Viewed Gift Cards': 'gift_cards_viewed',
-        'Viewed Loyalty': 'loyalty_viewed',
-        'Viewed Rewards': 'rewards_viewed',
-        'Viewed Points': 'points_viewed',
-        'Viewed Referral': 'referral_viewed',
-        'Viewed Affiliate': 'affiliate_viewed',
-        'Viewed Partner': 'partner_viewed',
-        'Viewed Reseller': 'reseller_viewed',
-        'Viewed Wholesale': 'wholesale_viewed',
-        'Viewed B2B': 'b2b_viewed',
-        'Viewed Enterprise': 'enterprise_viewed'
-      };
-
-      const mappedEvent = eventMap[eventName] || eventName;
-      
-      // Enhanced event data extraction
-      const enhancedData = this.enhanceShopifyEventData(eventName, eventProperties);
-      
-      // Track the event with enhanced data
-      this.trackEvent(mappedEvent, enhancedData);
-      
-      this.log(`Intercepted Shopify event: ${eventName}`, enhancedData);
-    }
-
-    enhanceShopifyEventData(eventName, eventProperties) {
-      const enhancedData = {
-        ...eventProperties,
-        shopify_event: eventName,
-        timestamp: Date.now(),
-        platform: 'shopify',
-        store_id: this.config.storeId,
-        visitor_id: this.visitorId,
-        session_id: this.sessionId
-      };
-
-      // Add specific enhancements based on event type
-      switch (eventName) {
-        case 'Viewed Product':
-        case 'Added Product':
-        case 'Removed Product':
-          enhancedData.product = this.extractShopifyProductFromAnalytics(eventProperties);
-          break;
-          
-        case 'Viewed Cart':
-          enhancedData.cart = this.extractShopifyCartFromAnalytics(eventProperties);
-          break;
-          
-        case 'Started Checkout':
-        case 'Completed Order':
-          enhancedData.order = this.extractShopifyOrderFromAnalytics(eventProperties);
-          break;
-          
-        case 'Searched':
-          enhancedData.search = this.extractShopifySearchFromAnalytics(eventProperties);
-          break;
-          
-        case 'Viewed Collection':
-          enhancedData.collection = this.extractShopifyCollectionFromAnalytics(eventProperties);
-          break;
-      }
-
-      return enhancedData;
-    }
-
-    extractShopifyProductFromAnalytics(properties) {
       return {
-        id: properties.product_id || properties.id,
-        name: properties.product_name || properties.name,
-        price: properties.price || properties.product_price,
-        category: properties.category || properties.product_category,
-        variant_id: properties.variant_id,
-        sku: properties.sku,
-        brand: properties.brand || properties.vendor,
-        currency: properties.currency || 'USD',
-        quantity: properties.quantity || 1
+        total,
+        currency: 'USD',
+        itemCount,
+        items
       };
     }
 
-    extractShopifyCartFromAnalytics(properties) {
-      return {
-        total: properties.cart_total || properties.total,
-        item_count: properties.cart_item_count || properties.item_count,
-        currency: properties.currency || 'USD',
-        items: properties.cart_items || properties.items || []
-      };
+    getCartUrl() {
+      switch (this.platform) {
+        case 'Shopify':
+          return '/cart';
+        case 'WooCommerce':
+          return '/cart';
+        default:
+          return '/cart';
+      }
     }
 
-    extractShopifyOrderFromAnalytics(properties) {
-      return {
-        id: properties.order_id || properties.id,
-        total: properties.order_total || properties.total,
-        currency: properties.currency || 'USD',
-        items: properties.order_items || properties.items || [],
-        payment_method: properties.payment_method,
-        shipping_method: properties.shipping_method,
-        discount_code: properties.discount_code,
-        discount_amount: properties.discount_amount
-      };
+    getCheckoutUrl() {
+      switch (this.platform) {
+        case 'Shopify':
+          return '/checkout';
+        case 'WooCommerce':
+          return '/checkout';
+        default:
+          return '/checkout';
+      }
     }
 
-    extractShopifySearchFromAnalytics(properties) {
-      return {
-        query: properties.search_term || properties.query,
-        results_count: properties.search_results_count || properties.results_count,
-        filters: properties.search_filters || properties.filters,
-        sort_by: properties.search_sort || properties.sort_by
-      };
-    }
-
-    extractShopifyCollectionFromAnalytics(properties) {
-      return {
-        id: properties.collection_id || properties.id,
-        name: properties.collection_name || properties.name,
-        product_count: properties.collection_product_count || properties.product_count,
-        url: properties.collection_url || properties.url
-      };
-    }
-
-    setupShopifyAjaxTracking() {
-      // Track AJAX cart updates
-      const originalFetch = window.fetch;
-      window.fetch = (...args) => {
-        const [url, options] = args;
-        
-        // Track cart updates
-        if (typeof url === 'string' && url.includes('/cart/update.js')) {
-          this.trackEvent('ajax_cart_updated');
-        }
-        
-        // Track add to cart via AJAX
-        if (typeof url === 'string' && url.includes('/cart/add.js')) {
-          this.trackEvent('ajax_add_to_cart');
-        }
-
-        return originalFetch.apply(this, args);
-      };
-    }
-
-    // Generic e-commerce tracking
-    setupGenericTracking() {
-      // Track clicks on common e-commerce elements
-      document.addEventListener('click', (e) => {
-        // Add to cart buttons
-        if (e.target.matches('[class*="add-to-cart"], [class*="addtocart"], [data-action="add-to-cart"]')) {
-          const productData = this.extractGenericProductData(e.target);
-          if (productData) {
-            this.trackAddToCart(productData);
-          }
-        }
-
-        // Buy now buttons
-        if (e.target.matches('[class*="buy-now"], [class*="purchase"], [data-action="buy-now"]')) {
-          const productData = this.extractGenericProductData(e.target);
-          if (productData) {
-            this.trackEvent('buy_now_clicked', productData);
-          }
-        }
-      });
-    }
-
-    // Core tracking methods
+    // Core tracking methods (keeping your existing structure)
     trackPageView() {
       const data = {
         event: 'page_view',
@@ -670,13 +692,11 @@
       this.sendEvent(data);
     }
 
-    trackSearch(query, results = null) {
+    trackCampaignEvent(eventType, properties = {}) {
       const data = {
-        event: 'search',
-        search: {
-          query: query,
-          results_count: results ? results.length : null
-        },
+        event: eventType,
+        campaignId: properties.campaignId,
+        properties: properties,
         timestamp: Date.now()
       };
       this.sendEvent(data);
@@ -691,11 +711,11 @@
       this.sendEvent(data);
     }
 
-    // Send event to backend
+    // Send event to your Next.js webhook
     sendEvent(eventData) {
       const payload = {
         ...eventData,
-        store_id: this.config.storeId,
+        store_id: this.config.clientId, // Using clientId as storeId for backward compatibility
         visitor_id: this.visitorId,
         session_id: this.sessionId,
         platform: this.platform,
@@ -712,13 +732,13 @@
       }
     }
 
-    // Send to server
+    // Send to your Next.js webhook
     sendToServer(payload) {
-      fetch(this.config.endpoint, {
+      fetch(this.config.webhookEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          'x-webhook-secret': WEBHOOK_SECRET
         },
         body: JSON.stringify(payload)
       }).catch(error => {
@@ -729,7 +749,47 @@
       });
     }
 
-    // Process offline event queue
+    // Utility methods
+    generateSessionId() {
+      return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    getOrCreateVisitorId() {
+      let visitorId = this.getLocalStorage('ea_visitor_id');
+      if (!visitorId) {
+        visitorId = 'vis_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        this.setLocalStorage('ea_visitor_id', visitorId);
+      }
+      return visitorId;
+    }
+
+    detectPlatform() {
+      if (window.wc_add_to_cart_params || document.querySelector('.woocommerce')) {
+        return 'WooCommerce';
+      }
+      if (window.Shopify || document.querySelector('[data-shopify]')) {
+        return 'Shopify';
+      }
+      if (window.Magento || document.querySelector('.magento')) {
+        return 'Magento';
+      }
+      if (document.querySelector('.bigcommerce')) {
+        return 'BigCommerce';
+      }
+      return 'Custom';
+    }
+
+    setupNetworkHandlers() {
+      window.addEventListener('online', () => {
+        this.isOnline = true;
+        this.processEventQueue();
+      });
+      
+      window.addEventListener('offline', () => {
+        this.isOnline = false;
+      });
+    }
+
     processEventQueue() {
       const queue = this.getEventQueue();
       queue.forEach(event => {
@@ -738,64 +798,85 @@
       this.clearEventQueue();
     }
 
-    // Data extraction methods
-    extractWooProductData(element) {
-      return {
-        id: element.getAttribute('data-product_id'),
-        name: element.getAttribute('aria-label') || element.textContent.trim(),
-        price: this.extractPrice(element.closest('.product')),
-        category: this.extractCategory(element.closest('.product'))
-      };
+    setupAutoTracking() {
+      switch (this.platform) {
+        case 'WooCommerce':
+          this.setupWooCommerceTracking();
+          break;
+        case 'Shopify':
+          this.setupShopifyTracking();
+          break;
+        default:
+          this.setupGenericTracking();
+      }
     }
 
-    extractWooProductFromPage() {
-      const productElement = document.querySelector('.product');
-      if (!productElement) return null;
+    setupWooCommerceTracking() {
+      // Track add to cart buttons
+      document.addEventListener('click', (e) => {
+        if (e.target.matches('.add_to_cart_button, .single_add_to_cart_button')) {
+          const productData = this.extractWooProductData(e.target);
+          if (productData) {
+            this.trackAddToCart(productData);
+          }
+        }
+      });
 
-      return {
-        id: productElement.getAttribute('data-product-id') || 
-             document.querySelector('[name="add-to-cart"]')?.value,
-        name: document.querySelector('.product_title')?.textContent?.trim(),
-        price: this.extractPrice(productElement),
-        category: this.extractWooCategory()
-      };
-    }
-
-    extractShopifyProductData(form) {
-      return {
-        id: form.querySelector('[name="id"]')?.value || this.extractShopifyProductId(),
-        name: this.extractShopifyProductName(),
-        price: this.extractShopifyProductPrice(),
-        category: this.extractShopifyCategory(),
-        variant_id: this.extractShopifyVariantId(),
-        sku: this.extractShopifySku(),
-        brand: this.extractShopifyBrand(),
-        currency: this.extractShopifyCurrency()
-      };
-    }
-
-    extractPrice(element) {
-      const priceSelectors = ['.price', '.amount', '[data-price]', '.money'];
-      for (const selector of priceSelectors) {
-        const priceElement = element.querySelector(selector);
-        if (priceElement) {
-          const priceText = priceElement.textContent || priceElement.getAttribute('data-price');
-          const price = priceText.replace(/[^0-9.]/g, '');
-          return parseFloat(price) || 0;
+      // Track product views on single product pages
+      if (document.body.classList.contains('single-product')) {
+        const productData = this.extractWooProductFromPage();
+        if (productData) {
+          this.trackProductView(productData);
         }
       }
-      return 0;
+
+      // Track order completion
+      if (document.body.classList.contains('woocommerce-order-received')) {
+        const orderData = this.extractWooOrderData();
+        if (orderData) {
+          this.trackPurchase(orderData);
+        }
+      }
     }
 
-    // Utility methods
-    normalizeProductData(product) {
-      return {
-        id: product.id,
-        name: product.name,
-        price: parseFloat(product.price) || 0,
-        category: product.category || 'Unknown',
-        currency: product.currency || 'USD'
-      };
+    setupShopifyTracking() {
+      // Track add to cart
+      document.addEventListener('submit', (e) => {
+        if (e.target.matches('form[action="/cart/add"], form[action*="/cart/add"]')) {
+          const productData = this.extractShopifyProductData(e.target);
+          if (productData) {
+            setTimeout(() => this.trackAddToCart(productData), 100);
+          }
+        }
+      });
+
+      // Track product views
+      if (window.location.pathname.includes('/products/')) {
+        const productData = this.extractShopifyProductFromPage();
+        if (productData) {
+          this.trackProductView(productData);
+        }
+      }
+
+      // Track order completion
+      if (window.location.pathname.includes('/orders/') && window.location.pathname.includes('/thank_you')) {
+        const orderData = this.extractShopifyOrderData();
+        if (orderData) {
+          this.trackPurchase(orderData);
+        }
+      }
+    }
+
+    setupGenericTracking() {
+      // Track clicks on common e-commerce elements
+      document.addEventListener('click', (e) => {
+        if (e.target.matches('[class*="add-to-cart"], [class*="addtocart"], [data-action="add-to-cart"]')) {
+          const productData = this.extractGenericProductData(e.target);
+          if (productData) {
+            this.trackAddToCart(productData);
+          }
+        }
+      });
     }
 
     setupEventListeners() {
@@ -819,6 +900,47 @@
           });
         }
       });
+    }
+
+    // Product extraction methods (simplified versions)
+    extractProductDataFromEvent(event) {
+      const productElement = event.target.closest('[data-product-id], .product');
+      if (!productElement) return null;
+
+      return {
+        id: productElement.getAttribute('data-product-id'),
+        name: productElement.querySelector('.product-title, .product-name, h3')?.textContent?.trim(),
+        price: this.extractPrice(productElement),
+        category: this.extractCategory(productElement)
+      };
+    }
+
+    extractPrice(element) {
+      const priceSelectors = ['.price', '.amount', '[data-price]', '.money'];
+      for (const selector of priceSelectors) {
+        const priceElement = element.querySelector(selector);
+        if (priceElement) {
+          const priceText = priceElement.textContent || priceElement.getAttribute('data-price');
+          const price = priceText.replace(/[^0-9.]/g, '');
+          return parseFloat(price) || 0;
+        }
+      }
+      return 0;
+    }
+
+    extractCategory(element) {
+      const categoryElement = element.querySelector('[data-category], .category');
+      return categoryElement ? categoryElement.textContent.trim() : 'Unknown';
+    }
+
+    normalizeProductData(product) {
+      return {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price) || 0,
+        category: product.category || 'Unknown',
+        currency: product.currency || 'USD'
+      };
     }
 
     // Storage utilities
@@ -868,416 +990,15 @@
         console.log('[EcommerceAnalytics]', ...args);
       }
     }
-
-    // Enhanced Shopify data extraction methods
-    extractShopifyProductFromPage() {
-      const productData = {
-        id: this.extractShopifyProductId(),
-        name: this.extractShopifyProductName(),
-        price: this.extractShopifyProductPrice(),
-        category: this.extractShopifyCategory(),
-        variant_id: this.extractShopifyVariantId(),
-        sku: this.extractShopifySku(),
-        brand: this.extractShopifyBrand(),
-        tags: this.extractShopifyTags(),
-        images: this.extractShopifyImages(),
-        currency: this.extractShopifyCurrency()
-      };
-
-      return Object.values(productData).some(v => v) ? productData : null;
-    }
-
-    extractShopifyProductFromButton(button) {
-      const productElement = button.closest('[data-product-id], .product, [class*="product"]');
-      if (!productElement) return null;
-
-      return {
-        id: productElement.getAttribute('data-product-id') || 
-             button.getAttribute('data-product-id'),
-        name: productElement.querySelector('.product-title, .product-name, h3, h4')?.textContent?.trim(),
-        price: this.extractPrice(productElement),
-        category: this.extractShopifyCategoryFromElement(productElement)
-      };
-    }
-
-    extractShopifyProductFromQuickView(button) {
-      // Extract product data from quick view modal or popup
-      const modal = document.querySelector('.quick-view-modal, .product-quick-view');
-      if (modal) {
-        return this.extractShopifyProductFromPage();
-      }
-      return null;
-    }
-
-    extractShopifyProductFromCartItem(button) {
-      const cartItem = button.closest('.cart-item, .cart__item, [data-cart-item]');
-      if (!cartItem) return null;
-
-      return {
-        id: cartItem.getAttribute('data-product-id'),
-        name: cartItem.querySelector('.cart-item__name, .cart__item__name')?.textContent?.trim(),
-        price: this.extractPrice(cartItem),
-        quantity: parseInt(cartItem.querySelector('.cart-item__quantity')?.value || 1)
-      };
-    }
-
-    extractShopifyProductId() {
-      // Try multiple selectors for product ID
-      const selectors = [
-        '[data-product-id]',
-        '[name="id"]',
-        '[data-variant-id]',
-        'input[name="id"]'
-      ];
-
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          return element.value || element.getAttribute('data-product-id');
-        }
-      }
-
-      // Try to extract from URL
-      const urlMatch = window.location.pathname.match(/\/products\/([^\/]+)/);
-      return urlMatch ? urlMatch[1] : null;
-    }
-
-    extractShopifyProductName() {
-      const selectors = [
-        '.product-title',
-        '.product__title',
-        'h1.product-title',
-        '[data-product-title]',
-        '.product-name'
-      ];
-
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          return element.textContent.trim();
-        }
-      }
-
-      return document.title.replace(/ - .*$/, '');
-    }
-
-    extractShopifyProductPrice() {
-      const selectors = [
-        '.product-price',
-        '.product__price',
-        '.price',
-        '[data-price]',
-        '.money'
-      ];
-
-      for (const selector of selectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          const priceText = element.textContent || element.getAttribute('data-price');
-          const price = priceText.replace(/[^0-9.]/g, '');
-          return parseFloat(price) || 0;
-        }
-      }
-
-      return 0;
-    }
-
-    extractShopifyVariantId() {
-      const variantSelect = document.querySelector('select[name="id"], [data-variant-select]');
-      return variantSelect ? variantSelect.value : null;
-    }
-
-    extractShopifySku() {
-      const skuElement = document.querySelector('[data-sku], .sku');
-      return skuElement ? skuElement.textContent.trim() : null;
-    }
-
-    extractShopifyBrand() {
-      const brandElement = document.querySelector('[data-brand], .brand, .vendor');
-      return brandElement ? brandElement.textContent.trim() : null;
-    }
-
-    extractShopifyTags() {
-      const tagElements = document.querySelectorAll('[data-tag], .tag');
-      return Array.from(tagElements).map(tag => tag.textContent.trim());
-    }
-
-    extractShopifyImages() {
-      const imageElements = document.querySelectorAll('.product-image img, .product__image img');
-      return Array.from(imageElements).map(img => img.src);
-    }
-
-    extractShopifyCurrency() {
-      // Try to extract from Shopify's currency object
-      if (window.Shopify && window.Shopify.currency) {
-        return window.Shopify.currency.active;
-      }
-
-      // Try to extract from price elements
-      const priceElement = document.querySelector('.price, .money');
-      if (priceElement) {
-        const priceText = priceElement.textContent;
-        const currencyMatch = priceText.match(/[A-Z]{3}/);
-        return currencyMatch ? currencyMatch[0] : 'USD';
-      }
-
-      return 'USD';
-    }
-
-    extractShopifyCategory() {
-      const breadcrumb = document.querySelector('.breadcrumb, .breadcrumbs');
-      if (breadcrumb) {
-        const links = breadcrumb.querySelectorAll('a');
-        return links.length > 1 ? links[links.length - 2].textContent.trim() : null;
-      }
-
-      const categoryElement = document.querySelector('[data-category], .category, .collection');
-      return categoryElement ? categoryElement.textContent.trim() : null;
-    }
-
-    extractShopifyCategoryFromElement(element) {
-      const categoryElement = element.querySelector('[data-category], .category, .collection');
-      return categoryElement ? categoryElement.textContent.trim() : null;
-    }
-
-    extractShopifyCollectionData() {
-      const collectionTitle = document.querySelector('.collection-title, .collection__title, h1');
-      const productCount = document.querySelector('.collection-product-count, .product-count');
-      
-      return {
-        name: collectionTitle ? collectionTitle.textContent.trim() : null,
-        product_count: productCount ? parseInt(productCount.textContent.match(/\d+/)[0]) : null,
-        url: window.location.pathname
-      };
-    }
-
-    extractShopifyFilterData(filterElement) {
-      return {
-        filter_type: filterElement.name,
-        filter_value: filterElement.value,
-        collection: this.extractShopifyCategory()
-      };
-    }
-
-    extractShopifyOrderData() {
-      // Try to extract order data from thank you page
-      const orderElement = document.querySelector('[data-order-id], .order-id');
-      const totalElement = document.querySelector('.order-total, .total');
-      
-      return {
-        id: orderElement ? orderElement.textContent.trim() : null,
-        total: totalElement ? parseFloat(totalElement.textContent.replace(/[^0-9.]/g, '')) : null,
-        currency: this.extractShopifyCurrency()
-      };
-    }
-
-    extractQuantityFromForm(form) {
-      const quantityInput = form.querySelector('input[name="quantity"], .quantity input');
-      return quantityInput ? parseInt(quantityInput.value) || 1 : 1;
-    }
-
-    extractCartTotal() {
-      const totalElement = document.querySelector('.cart-total, .cart__total, [data-cart-total]');
-      if (totalElement) {
-        const totalText = totalElement.textContent;
-        return parseFloat(totalText.replace(/[^0-9.]/g, '')) || 0;
-      }
-      return 0;
-    }
-
-    extractCartItemCount() {
-      const countElement = document.querySelector('.cart-count, .cart__count, [data-cart-count]');
-      if (countElement) {
-        return parseInt(countElement.textContent) || 0;
-      }
-      return 0;
-    }
-
-    detectCheckoutStep() {
-      const path = window.location.pathname;
-      if (path.includes('/checkout/contact')) return 'contact';
-      if (path.includes('/checkout/shipping')) return 'shipping';
-      if (path.includes('/checkout/payment')) return 'payment';
-      if (path.includes('/checkout/review')) return 'review';
-      return 'unknown';
-    }
-
-    handleShopifyEvent(event, properties) {
-      // Map Shopify events to our tracking events
-      const eventMap = {
-        'Viewed Product': 'product_view',
-        'Added Product': 'add_to_cart',
-        'Removed Product': 'remove_from_cart',
-        'Viewed Cart': 'cart_viewed',
-        'Started Checkout': 'checkout_initiated',
-        'Completed Order': 'purchase',
-        'Searched': 'search'
-      };
-
-      const mappedEvent = eventMap[event] || event;
-      this.trackEvent(mappedEvent, properties);
-    }
-
-    setupShopifyAdvancedTracking() {
-      // Track product recommendations
-      this.setupShopifyRecommendationTracking();
-      
-      // Track social sharing
-      this.setupShopifySocialTracking();
-      
-      // Track recently viewed products
-      this.setupShopifyRecentlyViewedTracking();
-      
-      // Track product reviews
-      this.setupShopifyReviewTracking();
-      
-      // Track newsletter signups
-      this.setupShopifyNewsletterTracking();
-    }
-
-    setupShopifyRecommendationTracking() {
-      // Track clicks on product recommendations
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('.product-recommendation, [data-recommendation], .recommendation-item')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackEvent('product_recommendation_clicked', {
-              ...productData,
-              recommendation_type: e.target.getAttribute('data-recommendation-type') || 'related'
-            });
-          }
-        }
-      });
-
-      // Track "You might also like" sections
-      document.addEventListener('click', (e) => {
-        if (e.target.closest('.you-might-also-like, .related-products, .product-suggestions')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackEvent('related_product_clicked', productData);
-          }
-        }
-      });
-    }
-
-    setupShopifySocialTracking() {
-      // Track social media sharing
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-share], .share-button, [class*="share"]')) {
-          const platform = e.target.getAttribute('data-platform') || 
-                          e.target.getAttribute('data-share') ||
-                          this.detectSocialPlatform(e.target);
-          
-          const productData = this.extractShopifyProductFromPage();
-          
-          this.trackEvent('product_shared', {
-            platform: platform,
-            product: productData,
-            url: window.location.href
-          });
-        }
-      });
-
-      // Track social media follows
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('.social-follow, [data-follow], [class*="follow"]')) {
-          const platform = e.target.getAttribute('data-platform') || 
-                          this.detectSocialPlatform(e.target);
-          
-          this.trackEvent('social_follow', { platform });
-        }
-      });
-    }
-
-    setupShopifyRecentlyViewedTracking() {
-      // Track recently viewed products
-      document.addEventListener('click', (e) => {
-        if (e.target.closest('.recently-viewed, .recent-products')) {
-          const productData = this.extractShopifyProductFromButton(e.target);
-          if (productData) {
-            this.trackEvent('recently_viewed_product_clicked', productData);
-          }
-        }
-      });
-    }
-
-    setupShopifyReviewTracking() {
-      // Track review submissions
-      document.addEventListener('submit', (e) => {
-        if (e.target.matches('.review-form, [data-review-form]')) {
-          const productData = this.extractShopifyProductFromPage();
-          this.trackEvent('review_submitted', { product: productData });
-        }
-      });
-
-      // Track review helpfulness
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('.review-helpful, [data-helpful]')) {
-          const isHelpful = e.target.getAttribute('data-helpful') === 'true';
-          this.trackEvent('review_helpful_clicked', { helpful: isHelpful });
-        }
-      });
-
-      // Track review ratings
-      document.addEventListener('change', (e) => {
-        if (e.target.matches('.rating-input, [data-rating]')) {
-          const rating = e.target.value;
-          this.trackEvent('review_rating_selected', { rating: parseInt(rating) });
-        }
-      });
-    }
-
-    setupShopifyNewsletterTracking() {
-      // Track newsletter signups
-      document.addEventListener('submit', (e) => {
-        if (e.target.matches('.newsletter-form, [data-newsletter], form[action*="newsletter"]')) {
-          this.trackEvent('newsletter_signup', {
-            form_id: e.target.id,
-            location: this.getFormLocation(e.target)
-          });
-        }
-      });
-
-      // Track email capture popups
-      document.addEventListener('click', (e) => {
-        if (e.target.matches('.email-capture, [data-email-capture]')) {
-          this.trackEvent('email_capture_triggered', {
-            trigger: e.target.getAttribute('data-trigger') || 'manual'
-          });
-        }
-      });
-    }
-
-    detectSocialPlatform(element) {
-      const href = element.href || '';
-      if (href.includes('facebook.com')) return 'facebook';
-      if (href.includes('twitter.com') || href.includes('x.com')) return 'twitter';
-      if (href.includes('instagram.com')) return 'instagram';
-      if (href.includes('pinterest.com')) return 'pinterest';
-      if (href.includes('linkedin.com')) return 'linkedin';
-      if (href.includes('youtube.com')) return 'youtube';
-      if (href.includes('tiktok.com')) return 'tiktok';
-      return 'unknown';
-    }
-
-    getFormLocation(form) {
-      const path = window.location.pathname;
-      if (path.includes('/products/')) return 'product_page';
-      if (path.includes('/collections/')) return 'collection_page';
-      if (path.includes('/cart')) return 'cart_page';
-      if (path.includes('/checkout')) return 'checkout_page';
-      return 'other';
-    }
   }
 
   // Initialize analytics when DOM is ready
   function initAnalytics() {
-    const script = document.querySelector('script[data-store-id]');
+    const script = document.querySelector('script[data-client-id]');
     if (script) {
       const config = {
-        storeId: script.getAttribute('data-store-id'),
+        clientId: script.getAttribute('data-client-id'),
         apiKey: script.getAttribute('data-api-key'),
-        endpoint: script.getAttribute('data-endpoint'),
         debug: script.getAttribute('data-debug') === 'true',
         autoTrack: script.getAttribute('data-auto-track') !== 'false'
       };

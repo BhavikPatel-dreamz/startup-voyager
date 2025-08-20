@@ -4,7 +4,7 @@ import User from "../../../../models/User";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "../../../../lib/mongoose";
 
-export const authOptions = {
+const authOptions = {
 	providers: [
 		Credentials({
 			name: "Credentials",

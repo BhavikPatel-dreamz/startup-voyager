@@ -33,8 +33,8 @@ export default async function handler(req, res) {
     }
 
     // Rate limiting (simple implementation)
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    //const now = new Date();
+   // const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
     if (store.plan === 'free' && store.monthly_events >= 100000) {
       return res.status(429).json({ error: 'Monthly event limit reached' });
@@ -60,35 +60,3 @@ export default async function handler(req, res) {
   }
 }
 
-async function getDailyStats(eventModel, storeId, startDate, endDate) {
-  return await eventModel.collection.aggregate([
-    {
-      $match: {
-        store_id: storeId,
-        created_at: { $gte: startDate, $lte: endDate }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          date: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
-          event: "$event"
-        },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $group: {
-        _id: "$_id.date",
-        events: {
-          $push: {
-            event: "$_id.event",
-            count: "$count"
-          }
-        },
-        total: { $sum: "$count" }
-      }
-    },
-    { $sort: { _id: 1 } }
-  ]).toArray();
-  } 

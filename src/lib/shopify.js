@@ -1,13 +1,13 @@
-import { GraphQLClient } from 'graphql-request';
+//import { GraphQLClient } from 'graphql-request';
 
-const shopifyClient = new GraphQLClient(
-  `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/2023-10/graphql.json`,
-  {
-    headers: {
-      'X-Shopify-Storefront-Access-Token': process.env.SHOPIFY_STOREFRONT_TOKEN,
-    },
-  }
-);
+// const shopifyClient = new GraphQLClient(
+//   `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/2023-10/graphql.json`,
+//   {
+//     headers: {
+//       'X-Shopify-Storefront-Access-Token': process.env.SHOPIFY_STOREFRONT_TOKEN,
+//     },
+//   }
+// );
 
 // Hook for Shopify product tracking
 export function useShopifyTracking(analytics) {

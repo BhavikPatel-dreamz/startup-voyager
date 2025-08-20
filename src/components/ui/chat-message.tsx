@@ -1,6 +1,6 @@
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import { cn } from "../../lib/utils";
-import { Star, Moon } from "lucide-react";
+import { Star } from "lucide-react";
 
 import ReactMarkdown from "react-markdown";
 
@@ -10,7 +10,7 @@ interface ChatMessageProps {
   timestamp?: string;
 }
 
-export const ChatMessage = ({ text, isUser, timestamp }: ChatMessageProps) => {
+export const ChatMessage = ({ text, isUser }: ChatMessageProps) => {
   return (
     <div
       className={cn(

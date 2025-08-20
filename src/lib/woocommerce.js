@@ -1,11 +1,11 @@
-import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
+//import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 
-const WooCommerce = new WooCommerceRestApi({
-  url: process.env.WOOCOMMERCE_URL,
-  consumerKey: process.env.WOOCOMMERCE_KEY,
-  consumerSecret: process.env.WOOCOMMERCE_SECRET,
-  version: 'wc/v3'
-});
+// const WooCommerce = new WooCommerceRestApi({
+//   url: process.env.WOOCOMMERCE_URL,
+//   consumerKey: process.env.WOOCOMMERCE_KEY,
+//   consumerSecret: process.env.WOOCOMMERCE_SECRET,
+//   version: 'wc/v3'
+// });
 
 // Hook for WooCommerce product tracking
 export function useWooCommerceTracking(analytics) {

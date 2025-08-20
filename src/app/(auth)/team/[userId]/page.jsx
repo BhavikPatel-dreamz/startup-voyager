@@ -1,4 +1,4 @@
-import { getUserById } from '../../../lib/userActions';
+import { getUserById } from '../../../../lib/actions/userActions';
 import { notFound } from 'next/navigation';
 
 // User Detail Page Component

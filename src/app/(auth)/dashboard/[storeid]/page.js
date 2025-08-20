@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Area, AreaChart
+  LineChart, Line,   Area, AreaChart
 } from 'recharts';
 import { 
-  Eye, ShoppingCart, CreditCard, Users, TrendingUp, 
-  Calendar, Download, Settings, Copy, Check
+  Eye, ShoppingCart, CreditCard,  TrendingUp, 
+   Download,  Copy, Check
 } from 'lucide-react';
 
 const Dashboard = () => {
