@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ConnectWebsiteForm from "./ConnectWebsiteForm";
 import QuickSetupGuide from "./QuickSetupGuide";
 import ConnectedSitesTable from "./ConnectedSitesTable";
@@ -40,9 +40,9 @@ export default function ScriptsClient() {
     // Fetch sites when filters change
     useEffect(() => {
         fetchSites();
-    }, [platformFilter, statusFilter, debouncedSearch, currentPage]);
+    }, [platformFilter, statusFilter, debouncedSearch, currentPage,fetchSites]);
 
-    const fetchSites = async () => {
+    const fetchSites = useCallback(async () => {
         try {
             setLoading(true);
             const result = await fetchSitesWithFilters({
@@ -52,24 +52,17 @@ export default function ScriptsClient() {
                 page: currentPage,
                 limit: 10
             });
-            
             if (result.success) {
                 setSites(result.sites);
                 setPagination(result.pagination);
                 setError(null);
             } else {
-                setError(result.error);
-                setSites([]);
-                setPagination(null);
+                setError(result.message || "Failed to fetch sites");
             }
-        } catch (err) {
-            setError('Failed to fetch connected sites');
-            setSites([]);
-            setPagination(null);
         } finally {
             setLoading(false);
         }
-    };
+    }, [debouncedSearch, platformFilter, statusFilter, currentPage]);
 
     const handleAddSite = async (site) => {
         try {
@@ -334,7 +327,7 @@ export default function ScriptsClient() {
                             )}
                             {searchQuery && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    Search: "{searchQuery}"
+                                    Search: &quot;{searchQuery}&quot;
                                     <button
                                         onClick={() => setSearchQuery('')}
                                         className="ml-1 text-purple-600 hover:text-purple-800"
@@ -378,4 +371,4 @@ export default function ScriptsClient() {
             </div>
         </AppLayout>
     );
-} 
+}

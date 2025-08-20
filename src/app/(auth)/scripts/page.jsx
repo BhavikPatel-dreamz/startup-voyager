@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ConnectWebsiteForm from "../../../components/script/ConnectWebsiteForm";
 import QuickSetupGuide from "../../../components/script/QuickSetupGuide";
 import ConnectedSitesTable from "../../../components/script/ConnectedSitesTable";
@@ -45,16 +45,10 @@ export default function ScriptsClient() {
     }, [searchQuery]);
 
     // Fetch sites when filters change
-    useEffect(() => {
-        fetchSites();
-    }, [platformFilter, statusFilter, debouncedSearch, currentPage]);
-
-    const fetchSites = async () => {
+    const fetchSites = useCallback(async () => {
         try {
             setLoading(true);
-
             console.log("fetching sites with filters", debouncedSearch, platformFilter, statusFilter, currentPage);
-
             const result = await fetchSitesWithFilters({
                 search: debouncedSearch,
                 platform: platformFilter || null,
@@ -62,7 +56,6 @@ export default function ScriptsClient() {
                 page: currentPage,
                 limit: 10
             });
-            
             if (result.success) {
                 setSites(result.sites);
                 setPagination(result.pagination);
@@ -79,7 +72,11 @@ export default function ScriptsClient() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [debouncedSearch, platformFilter, statusFilter, currentPage]);
+
+    useEffect(() => {
+        fetchSites();
+    }, [platformFilter, statusFilter, debouncedSearch, currentPage, fetchSites]);
 
     const handleAddSite = async (site) => {
         try {
@@ -276,4 +273,4 @@ export default function ScriptsClient() {
             </div>
        
     );
-} 
+}

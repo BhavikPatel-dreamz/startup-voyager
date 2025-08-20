@@ -54,7 +54,7 @@ export default function EditScriptClient({ site, siteAccess }) {
         if (showAccessModal && users.length === 0) {
             fetchUsers();
         }
-    }, [showAccessModal]);
+    }, [showAccessModal,users.length]);
 
     const fetchUsers = async () => {
         setIsLoadingUsers(true);

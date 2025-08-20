@@ -17,7 +17,7 @@ const Dashboard = () => {
   const [copied, setCopied] = useState(false);
 
   // Mock data for demonstration
-  const mockData = {
+  const mockData = React.useMemo(() => ({
     overview: {
       total_events: 12543,
       page_views: 8234,
@@ -43,7 +43,7 @@ const Dashboard = () => {
       { _id: '2024-01-06', total: 445, events: [{ event: 'page_view', count: 234 }, { event: 'product_view', count: 129 }, { event: 'add_to_cart', count: 54 }, { event: 'purchase', count: 28 }] },
       { _id: '2024-01-07', total: 523, events: [{ event: 'page_view', count: 278 }, { event: 'product_view', count: 152 }, { event: 'add_to_cart', count: 68 }, { event: 'purchase', count: 25 }] }
     ]
-  };
+  }), []);
 
   useEffect(() => {
     // Simulate API call
@@ -51,7 +51,7 @@ const Dashboard = () => {
       setStoreData(mockData);
       setLoading(false);
     }, 1000);
-  }, [dateRange]);
+  }, [dateRange, mockData]);
 
   const copyTrackingScript = () => {
     const script = `<script 

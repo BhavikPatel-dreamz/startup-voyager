@@ -123,7 +123,7 @@ export default function Settings() {
                                             readOnly
                                             disabled
                                         />
-                                        <p className="text-xs text-slate-500 mt-1">Email cannot be changed as it's managed by your account</p>
+                                        <p className="text-xs text-slate-500 mt-1">Email cannot be changed as it&apos;s managed by your account</p>
                                     </div>
                                     {error && <div className="text-red-600 text-sm">{error}</div>}
                                     {success && <div className="text-green-600 text-sm">Profile updated successfully!</div>}

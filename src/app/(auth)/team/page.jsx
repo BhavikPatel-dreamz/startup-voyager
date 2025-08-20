@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AppLayout, { useAppLayout } from "../../../components/AppLayout";
 import InviteModal from "../../../components/team/InviteModal";
 import TeamTable from "../../../components/team/TeamTable";
@@ -37,37 +37,38 @@ const TeamManagement = () => {
     }, [searchQuery]);
 
     // Fetch team members when filters change
-    useEffect(() => {
-        fetchTeamMembers();
-    }, [roleFilter, debouncedSearch, currentPage]);
-
-    const fetchTeamMembers = async () => {
-        try {
-            setLoading(true);
-            const result = await getUsers({
-                role: roleFilter || null,
-                search: debouncedSearch,
-                page: currentPage,
-                limit: 20
-            });
-            
-            if (result.success) {
-                setTeamMembers(result.users);
-                setPagination(result.pagination);
-                setError(null);
-            } else {
-                setError(result.message);
+        const fetchTeamMembers = useCallback(async () => {
+            try {
+                setLoading(true);
+                const result = await getUsers({
+                    role: roleFilter || null,
+                    search: debouncedSearch,
+                    page: currentPage,
+                    limit: 20
+                });
+                if (result.success) {
+                    setTeamMembers(result.users);
+                    setPagination(result.pagination);
+                    setError(null);
+                } else {
+                    setError(result.message);
+                    setTeamMembers([]);
+                    setPagination(null);
+                }
+            } catch (err) {
+                setError('Failed to fetch team members');
                 setTeamMembers([]);
                 setPagination(null);
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            setError('Failed to fetch team members');
-            setTeamMembers([]);
-            setPagination(null);
-        } finally {
-            setLoading(false);
-        }
-    };
+        }, [roleFilter, debouncedSearch, currentPage]);
+
+        useEffect(() => {
+            fetchTeamMembers();
+        }, [fetchTeamMembers]);
+
+  
 
     const handleRoleChange = async (memberId, newRole) => {
         try {
