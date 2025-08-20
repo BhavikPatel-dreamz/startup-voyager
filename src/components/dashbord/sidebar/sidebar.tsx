@@ -6,17 +6,11 @@ import Userstatus from './userstatus'
 export default function DashbaordSidebar({
     isMobileMenuOpen,
     setIsMobileMenuOpen,
-    menuItems = [
-        { id: "/dashboard", label: "Dashboard", icon: "📊" },
-        { id: "/campaigns", label: "Campaigns", icon: "🎯" },
-        { id: "/scripts", label: "Scripts", icon: "📝" },
-        { id: "/team", label: "Team", icon: "👥" },
-        { id: "/settings", label: "Settings", icon: "⚙️" },
-      ]
+    menuItems = []
     }: {
       isMobileMenuOpen: boolean;
       setIsMobileMenuOpen: (open: boolean) => void;
-      menuItems?: { id: string; label: string; icon: string }[];
+      menuItems?: { id: string; label: string; icon: string; access: string[] }[];
     })  
   {  
   return (

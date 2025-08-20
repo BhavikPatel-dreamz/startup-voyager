@@ -190,14 +190,14 @@ export default function CreateCampaignForm({ onSubmit, onCancel, initialData }) 
           <p className="text-xs text-gray-500">{form.description}</p>
           <div className="mt-3 space-y-2">
             <div className="flex items-center gap-2">
-              <Image src="https://via.placeholder.com/30" alt="" className="rounded" />
+              <Image src="https://placehold.co/30/png" alt="" width="30" height="30" className="rounded" />
               <div>
                 <p className="text-sm font-medium">Product Item 1</p>
                 <p className="text-xs text-gray-500">$29.99</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Image src="https://via.placeholder.com/30" alt="" className="rounded" />
+              <Image src="https://placehold.co/30/png" alt="" width="30" height="30" className="rounded" />
               <div>
                 <p className="text-sm font-medium">Product Item 2</p>
                 <p className="text-xs text-gray-500">$24.99</p>

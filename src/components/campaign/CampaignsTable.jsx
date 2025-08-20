@@ -1,6 +1,6 @@
 import React from "react";
 import { Skeleton } from "../ui/skeleton";
-import { Eye, Edit2, Pause, Play, Trash2 } from "lucide-react";
+import { Eye, Edit2, Pause, Play, Trash2 ,ChartSpline} from "lucide-react";
 import Pagination from "../team/Pagination";
 
 export default function CampaignsTable({ pagination, campaigns, onAction, isLoading = false}) {
@@ -21,10 +21,10 @@ export default function CampaignsTable({ pagination, campaigns, onAction, isLoad
           <thead className="[&_tr]:border-b">
             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Campaign</th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Client</th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Created By</th>
+              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Project</th>
+              {/* <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Created By</th> */}
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Status</th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Threshold</th>
+              {/* <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Threshold</th> */}
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Created</th>
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 text-sm">Actions</th>
             </tr>
@@ -45,7 +45,7 @@ export default function CampaignsTable({ pagination, campaigns, onAction, isLoad
               <tr key={i} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.name}</td>
                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.client || c.clientDomain}</td>
-                <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.createdBy}</td>
+                {/* <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.createdBy}</td> */}
                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
@@ -57,10 +57,10 @@ export default function CampaignsTable({ pagination, campaigns, onAction, isLoad
                     {c.status}
                   </span>
                 </td>
-                <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.threshold}</td>
+                {/* <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.threshold}</td> */}
                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm">{c.created}</td>
                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium text-sm flex gap-2 flex-wrap">
-                  {/* <Eye size={16} className="cursor-pointer" onClick={() => onAction("view", c)} /> */}
+                  <ChartSpline size={16} className="cursor-pointer" onClick={() => onAction("analytics", c)} /> 
                   <Edit2 size={16} className="cursor-pointer" onClick={() => onAction("edit", c)} />
                   {c.status === "Active" ? (
                     <Pause size={16} className="cursor-pointer" onClick={() => onAction("pause", c)} />
@@ -107,7 +107,7 @@ export default function CampaignsTable({ pagination, campaigns, onAction, isLoad
             </div>
             <div className="text-sm mt-1">Created: {c.created}</div>
             <div className="flex gap-3 mt-3 flex-wrap">
-              <Eye size={16} className="cursor-pointer" onClick={() => onAction("view", c)} />
+              <ChartSpline size={16} className="cursor-pointer" onClick={() => onAction("view", c)} />
               <Edit2 size={16} className="cursor-pointer" onClick={() => onAction("edit", c)} />
               {c.status === "Active" ? (
                 <Pause size={16} className="cursor-pointer" onClick={() => onAction("pause", c)} />

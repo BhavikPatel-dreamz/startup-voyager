@@ -15,9 +15,10 @@ import {
     deleteSite,
     fetchSitesWithFilters
 } from "../../../lib/actions/connectedSiteActions";
+import AdminRoute from "@/components/AdminRoute";
 
 
-export default function ScriptsClient() {
+function ScriptsClient() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sites, setSites] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -272,5 +273,13 @@ export default function ScriptsClient() {
                 </Modal>
             </div>
        
+    );
+}
+
+export default function WrappedCampaignsPage(props) {
+    return (
+        <AdminRoute>
+            <ScriptsClient {...props} />
+        </AdminRoute>
     );
 }

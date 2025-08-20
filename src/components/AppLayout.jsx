@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import DashbaordSidebar from "./dashbord/sidebar/sidebar";
 import PageHeader from "./dashbord/Header";
+import GlobalConst from "../utils/const";
 
 // Context to allow child pages to set the layout titles dynamically
 const AppLayoutContext = React.createContext({
@@ -79,6 +80,7 @@ const AppLayout = ({
         <DashbaordSidebar
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
+          menuItems={GlobalConst.MenuItems}
         />
 
         {/* Main Content */}

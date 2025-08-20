@@ -1,11 +1,12 @@
 "use client"
 import React, { useState, useEffect } from "react";
+import AdminRoute from "../../../components/AdminRoute";
 import CampaignsTable from "../../../components/campaign/CampaignsTable";
 import CreateCampaignForm from "../../../components/campaign/CreateCampaignForm";
 import Modal from "../../../components/Modal";
 import { useAppLayout } from "../../../components/AppLayout";
 
-export default function CampaignsPage() {
+function CampaignsPage() {
     const { setTitles } = useAppLayout();
     useEffect(() => {
         setTitles({ pageTitle: "Campaigns", secondPageTitle: "Create, monitor, and optimize your opt-in campaigns — all in one place."});
@@ -196,5 +197,13 @@ export default function CampaignsPage() {
                 </Modal>
             </div>
         
+    );
+}
+
+export default function WrappedCampaignsPage(props) {
+    return (
+        <AdminRoute>
+            <CampaignsPage {...props} />
+        </AdminRoute>
     );
 }

@@ -12,9 +12,14 @@ const connectedSiteSchema = new mongoose.Schema({
     required: true,
     enum: ['Shopify', 'WooCommerce', 'Custom', 'Other']
   },
-  owner: {
+  project: {
     type: String,
     required: true,
+    trim: true
+  },
+  owner: {
+    type: String,
+    required: false,
     trim: true
   },
   clientId: {

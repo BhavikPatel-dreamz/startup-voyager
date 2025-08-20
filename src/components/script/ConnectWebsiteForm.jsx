@@ -4,6 +4,7 @@ export default function ConnectWebsiteForm({ onSubmit }) {
   const [formData, setFormData] = useState({
     domain: "",
     platform: "Shopify",
+    project: "",
     owner: "",
     clientId: ""
   });
@@ -16,17 +17,17 @@ export default function ConnectWebsiteForm({ onSubmit }) {
     }));
   };
 
-  const generateClientId = () => {
-    const domain = formData.domain.replace(/[^a-zA-Z0-9]/g, '');
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(12).substring(2, 8);
-    const clientId = `${domain}_${timestamp}_${random}`;
-    setFormData(prev => ({ ...prev, clientId }));
-  };
+  // const generateClientId = () => {
+  //   const domain = formData.domain.replace(/[^a-zA-Z0-9]/g, '');
+  //   const timestamp = Date.now().toString(36);
+  //   const random = Math.random().toString(12).substring(2, 8);
+  //   const clientId = `${domain}_${timestamp}_${random}`;
+  //   setFormData(prev => ({ ...prev, clientId }));
+  // };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.domain.trim() && formData.owner.trim() && formData.clientId.trim()) {
+    if (formData.domain.trim()) {
       onSubmit(formData);
     }
   };
@@ -51,6 +52,25 @@ export default function ConnectWebsiteForm({ onSubmit }) {
         </p>
       </div>
 
+ <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Project Name *
+        </label>
+        <input
+          type="text"
+          name="project"
+          placeholder="My Project"
+          value={formData.project}
+          onChange={handleChange}
+          className="mt-1 block w-full border rounded-lg px-3 py-2 text-sm focus:ring focus:ring-blue-200"
+          required
+        />
+        <p className="text-xs text-gray-500">
+          Enter your project name
+        </p>
+      </div>
+
+
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Platform
@@ -71,7 +91,7 @@ export default function ConnectWebsiteForm({ onSubmit }) {
         </p>
       </div>
 
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium text-gray-700">
           Owner Email *
         </label>
@@ -87,9 +107,9 @@ export default function ConnectWebsiteForm({ onSubmit }) {
         <p className="text-xs text-gray-500">
           Email address of the site owner
         </p>
-      </div>
+      </div> */}
 
-      <div>
+      {/* <div>
         <label className="block text-sm font-medium text-gray-700">
           Client ID *
         </label>
@@ -114,7 +134,7 @@ export default function ConnectWebsiteForm({ onSubmit }) {
         <p className="text-xs text-gray-500">
           Unique identifier for your site (auto-generated)
         </p>
-      </div>
+      </div> */}
 
       <div className="flex justify-end space-x-2">
         <button

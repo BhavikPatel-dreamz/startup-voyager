@@ -85,4 +85,5 @@ InviteSchema.pre('save', function(next) {
   next();
 });
 
-export default mongoose.models?.Invite || mongoose.model("Invite", InviteSchema); 
+const Invite = mongoose.models?.Invite || mongoose.model("Invite", InviteSchema);
+export default Invite;

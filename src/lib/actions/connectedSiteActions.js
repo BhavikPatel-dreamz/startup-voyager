@@ -1,7 +1,9 @@
 "use server";
 
+import { error } from "console";
 import ConnectedSite from "../../models/ConnectedSite";
 import { connectToDatabase } from "../mongoose";
+import { randomBytes } from "crypto";
 
 class ConnectedSiteService {
   async fetchSites() {
@@ -94,10 +96,11 @@ class ConnectedSiteService {
 
   async createSite(siteData) {
     try {
-      const { domain, platform, owner, clientId } = siteData;
 
-      if (!domain || !platform || !owner || !clientId) {
-        return { success: false, error: "Missing required fields" };
+      const { domain, platform, project, owner } = siteData;
+
+      if (!domain || !platform || !project) {
+        throw new Error("Missing required fields");
       }
 
       await connectToDatabase();
@@ -106,13 +109,15 @@ class ConnectedSiteService {
         return { success: false, error: "Domain already exists" };
       }
 
-      if (await ConnectedSite.findOne({ clientId })) {
-        return { success: false, error: "Client ID already exists" };
-      }
+      // if (await ConnectedSite.findOne({ clientId })) {
+      //   return { success: false, error: "Client ID already exists" };
+      // }
 
+      const clientId = `${domain}_${randomBytes(16).toString("hex")}`;
       const newSite = new ConnectedSite({
         domain,
         platform,
+        project,
         owner,
         clientId,
         scriptStatus: "Script Pending",

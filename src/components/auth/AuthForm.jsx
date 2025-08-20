@@ -81,10 +81,10 @@ const AuthForm = ({ mode = "login" }) => {
           password: formData.password,
         });
 
-        if (res?.error) {
+        // if (res?.error) {
           
-          throw new Error(res?.error || "Login failed");
-        }
+        //   throw new Error(res?.error || "Login failed");
+        // }
         router.push("/dashboard");
       }
 

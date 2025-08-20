@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import AppLayout from '../../../components/AppLayout';
 import { signOut } from "next-auth/react"
+import AdminRoute from '@/components/AdminRoute';
 
 // TODO: Replace with real user email from session/auth
 
 
-export default function Settings() {
+function Settings() {
     const { data: session, status } = useSession();
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '' });
     const [loading, setLoading] = useState(false);
@@ -244,3 +245,11 @@ export default function Settings() {
     )
 }
 
+
+export default function WrappedSettingsManagementPage(props) {
+    return (
+        <AdminRoute>
+            <Settings {...props} />
+        </AdminRoute>
+    );
+}
