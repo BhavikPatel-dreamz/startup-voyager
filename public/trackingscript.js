@@ -8,7 +8,7 @@
   'use strict';
 
   // Configuration - Update these endpoints to match your Next.js app
-  const API_BASE_URL = 'https://your-nextjs-app.com/api';
+  const API_BASE_URL = 'https://startup-voyager-bta5.vercel.app/api';
   const WEBHOOK_SECRET = 'your-very-secret-token';
   
   class EcommerceTracker {

@@ -3,6 +3,8 @@
 import User from "../../../../models/User";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "../../../../lib/mongoose";
+import NextAuth from "next-auth";
+
 
 const credentialsProvider = {
   id: "credentials",
@@ -68,7 +70,7 @@ const authOptions = {
 };
 
 async function getHandler() {
-  const { default: NextAuth } = await import("next-auth/next");
+
   return NextAuth(authOptions);
 }
 
