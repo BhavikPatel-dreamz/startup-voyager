@@ -23,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/layout.js", "src/types/**/*.d.ts"],
-  "exclude": ["node_modules","_extrafiles","trackingscript.js","shopify-app-installation.js","shopify-analytics-interceptor.js"]
+  "exclude": ["node_modules","_extrafiles","public/trackingscript.js","shopify-app-installation.js","shopify-analytics-interceptor.js"]
 }
